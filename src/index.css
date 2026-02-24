@@ -1,0 +1,347 @@
+@import "tailwindcss";
+
+/* =========================================================
+   THEME TOKENS (Tailwind v4 @theme)
+   ========================================================= */
+@theme {
+  /* Primary */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Accent */
+  --color-accent-50: #f5f3ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+  --color-accent-800: #5b21b6;
+  --color-accent-900: #4c1d95;
+
+  /* Semantic */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+
+  /* Surfaces */
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
+  --color-surface-600: #475569;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* NEW: Design tokens for consistency */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 25px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.14);
+
+  /* Motion tokens */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-med: 220ms;
+  --dur-slow: 420ms;
+
+  /* Focus ring */
+  --ring: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 35%, transparent);
+}
+
+/* =========================================================
+   BASE / RESET (Better than manual margin:0 everywhere)
+   ========================================================= */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-surface-800);
+    background: var(--color-surface-50);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Better default selection */
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary-500) 25%, transparent);
+  }
+
+  /* Images behave */
+  img,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Links inherit color by default */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Inputs inherit font */
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  /* RTL support: keep layout consistent */
+  [dir="rtl"] {
+    text-align: right;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY (Focus, reduced motion)
+   ========================================================= */
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+    border-radius: 0.5rem;
+  }
+
+  /* If user prefers reduced motion, disable heavy animations */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* =========================================================
+   SCROLLBAR (Polished)
+   ========================================================= */
+@layer base {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-400) var(--color-surface-100);
+  }
+
+  /* WebKit */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-100);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-300),
+      var(--color-surface-400)
+    );
+    border-radius: 999px;
+    border: 2px solid var(--color-surface-100);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-400),
+      var(--color-surface-500)
+    );
+  }
+}
+
+/* =========================================================
+   UTILITIES (Reusable CSS helpers)
+   ========================================================= */
+@layer utilities {
+  .hero-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600) 0%,
+      var(--color-accent-600) 100%
+    );
+  }
+
+  /* Subtle background dots (optional, looks premium) */
+  .bg-dots {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--color-surface-300) 35%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
+  }
+
+  /* Soft border */
+  .border-soft {
+    border-color: color-mix(in srgb, var(--color-surface-300) 55%, transparent);
+  }
+
+  /* Glass style */
+  .glass {
+    background: color-mix(in srgb, white 70%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in srgb, var(--color-surface-300) 45%, transparent);
+  }
+}
+
+/* =========================================================
+   COMPONENT CLASSES (Card, Skeleton, Toast, Fade)
+   ========================================================= */
+@layer components {
+  /* ---------- Card ---------- */
+  .card {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in srgb, var(--color-surface-300) 55%, transparent);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform var(--dur-med) var(--ease-out),
+      box-shadow var(--dur-med) var(--ease-out),
+      border-color var(--dur-med) var(--ease-out);
+  }
+
+  .card--hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: color-mix(in srgb, var(--color-primary-500) 35%, var(--color-surface-300));
+  }
+
+  .card--clickable {
+    cursor: pointer;
+  }
+
+  .card--clickable:focus-visible {
+    box-shadow: var(--ring), var(--shadow-md);
+    border-color: color-mix(in srgb, var(--color-primary-500) 55%, var(--color-surface-300));
+  }
+
+  .card--disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  .card--disabled:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border-color: color-mix(in srgb, var(--color-surface-300) 55%, transparent);
+  }
+
+  /* ---------- Skeleton ---------- */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .skeleton {
+    border-radius: 0.75rem;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-surface-200) 92%, white) 25%,
+      color-mix(in srgb, var(--color-surface-100) 92%, white) 50%,
+      color-mix(in srgb, var(--color-surface-200) 92%, white) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s var(--ease-soft) infinite;
+  }
+
+  /* ---------- Toast (enter/exit) ---------- */
+  @keyframes toastIn {
+    from {
+      transform: translateX(18px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes toastOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(18px);
+      opacity: 0;
+    }
+  }
+
+  .toast-enter {
+    animation: toastIn 260ms var(--ease-out) forwards;
+  }
+  .toast-exit {
+    animation: toastOut 200ms ease-in forwards;
+  }
+
+  /* ---------- Fade / Lift ---------- */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in {
+    animation: fadeUp 360ms var(--ease-out) forwards;
+  }
+}
