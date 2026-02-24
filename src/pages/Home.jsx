@@ -46,7 +46,7 @@ export default function Home() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link to="/opportunities">
-                                <Button size="lg" className="bg-white text-primary-700 hover:bg-white/90 w-full sm:w-auto">
+                                <Button size="lg" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
                                     {t('home.heroCta')}
                                     <ArrowRight className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
                                 </Button>
