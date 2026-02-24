@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { DataStoreProvider } from './contexts/DataStoreContext';
@@ -59,12 +59,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <UIProvider>
         <DataStoreProvider>
           <AppContent />
         </DataStoreProvider>
       </UIProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
