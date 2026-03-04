@@ -5,6 +5,7 @@ import { useDataStore } from '../contexts/DataStoreContext';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import EventSlideshow from '../components/ui/EventSlideshow';
 
 export default function Home() {
     const { t, i18n } = useTranslation();
@@ -34,32 +35,7 @@ export default function Home() {
     return (
         <div className="fade-in">
             {/* Hero Section */}
-            <section className="hero-gradient text-white py-20 lg:py-28 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0yaDF2NGgtMXYtNHptMi0yaDF2MWgtMXYtMXptLTIgMGgxdjFoLTF2LTF6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-                    <div className="max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
-                            {t('home.heroTitle')}
-                        </h1>
-                        <p className="text-xl sm:text-2xl text-white/90 mb-10 leading-relaxed">
-                            {t('home.heroSubtitle')}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link to="/opportunities">
-                                <Button size="lg" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
-                                    {t('home.heroCta')}
-                                    <ArrowRight className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
-                                </Button>
-                            </Link>
-                            <Link to="/submit">
-                                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
-                                    {t('home.heroCtaSecondary')}
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <EventSlideshow />
 
             {/* Stats */}
             <section className="py-12 bg-white border-b border-surface-200">
