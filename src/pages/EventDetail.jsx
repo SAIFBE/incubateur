@@ -78,9 +78,9 @@ export default function EventDetail() {
 
     return (
         <div className="fade-in">
-            <div className="hero-gradient text-white py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-2 mb-4">
+            <div className="hero-gradient text-white py-16 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-2 mb-4">
                         <Badge status={event.mode} className="border border-white/30">
                             {event.mode === 'online' ? (
                                 <span className="flex items-center gap-1"><Wifi className="h-3 w-3" /> {t('events.online')}</span>
@@ -104,7 +104,7 @@ export default function EventDetail() {
 
                 <div className="grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
-                        <Card hover={false}>
+                        <Card hover={false} className="p-6 md:p-8 shadow-md">
                             <p className="text-surface-600 leading-relaxed whitespace-pre-line">
                                 {event.description_i18n[lang] || event.description_i18n.fr}
                             </p>
@@ -117,7 +117,7 @@ export default function EventDetail() {
                     </div>
 
                     <div className="space-y-6">
-                        <Card hover={false} className="space-y-4">
+                        <Card hover={false} className="p-6 md:p-8 shadow-md space-y-4">
                             <div className="flex items-center gap-3">
                                 <Calendar className="h-5 w-5 text-primary-500" />
                                 <div>

@@ -1,84 +1,76 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download, Image as ImageIcon, X } from 'lucide-react';
 import Papa from 'papaparse';
 import { useDataStore } from '../../contexts/DataStoreContext';
 import { useUI } from '../../contexts/UIContext';
 import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
 
-const emptyEvent = {
+const emptyPastEvent = {
     title_i18n: { fr: '', ar: '', en: '' },
     description_i18n: { fr: '', ar: '', en: '' },
     location_i18n: { fr: '', ar: '', en: '' },
-    startDate: '',
-    endDate: '',
-    mode: 'onsite',
-    tags: [],
+    date: '',
+    images: [],
 };
 
-export default function AdminEvents() {
+export default function AdminPastEvents() {
     const { t, i18n } = useTranslation();
     const lang = i18n.language;
-    const { events, addEvent, updateEvent, deleteEvent } = useDataStore();
+    const { pastEvents, addPastEvent, updatePastEvent, deletePastEvent } = useDataStore();
     const { addToast } = useUI();
+    
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState(emptyEvent);
+    const [form, setForm] = useState(emptyPastEvent);
     const [confirmDelete, setConfirmDelete] = useState(null);
-    const [tagsInput, setTagsInput] = useState('');
 
     const openAdd = () => {
         setEditing(null);
-        setForm(emptyEvent);
-        setTagsInput('');
+        setForm(emptyPastEvent);
         setFormOpen(true);
     };
 
     const openEdit = (evt) => {
         setEditing(evt);
-        setForm({ ...evt, startDate: evt.startDate.substring(0, 16), endDate: evt.endDate.substring(0, 16) });
-        setTagsInput(evt.tags.join(', '));
+        setForm(evt);
         setFormOpen(true);
     };
 
     const handleSave = () => {
-        const data = { ...form, tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean) };
+        const data = { ...form };
+        
         if (editing) {
-            updateEvent(data);
+            updatePastEvent(data);
             addToast({ type: 'success', title: t('admin.edit') + ' ✓' });
         } else {
-            addEvent({ ...data, createdAt: new Date().toISOString().split('T')[0] });
+            addPastEvent(data);
             addToast({ type: 'success', title: t('admin.add') + ' ✓' });
         }
         setFormOpen(false);
     };
 
     const handleDelete = (id) => {
-        deleteEvent(id);
+        deletePastEvent(id);
         setConfirmDelete(null);
         addToast({ type: 'info', title: t('admin.delete') + ' ✓' });
     };
 
     const exportCSV = () => {
-        const csv = Papa.unparse(events.map(e => ({
+        const csv = Papa.unparse(pastEvents.map(e => ({
             ID: e.id,
             Title_FR: e.title_i18n.fr,
-            Title_AR: e.title_i18n.ar,
-            Title_EN: e.title_i18n.en,
-            StartDate: e.startDate,
-            EndDate: e.endDate,
-            Mode: e.mode,
-            Tags: e.tags.join('; '),
+            Date: e.date,
+            Location: e.location_i18n.fr,
+            ImagesCount: e.images.length
         })));
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'events.csv';
+        a.download = 'past_events.csv';
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -90,12 +82,12 @@ export default function AdminEvents() {
     return (
         <div className="fade-in space-y-6">
             <div className="flex flex-col items-center justify-center text-center gap-4 mb-2">
-                <h1 className="text-2xl font-bold text-surface-900">{t('admin.events')}</h1>
+                <h1 className="text-2xl font-bold text-surface-900">{t('admin.pastEvents')}</h1>
                 <div className="flex gap-3">
                     <Button variant="secondary" icon={Download} onClick={exportCSV} size="sm">
                         {t('admin.export')}
                     </Button>
-                    <Button icon={Plus} onClick={() => openAdd()} size="sm">
+                    <Button icon={Plus} onClick={openAdd} size="sm">
                         {t('admin.add')}
                     </Button>
                 </div>
@@ -108,33 +100,32 @@ export default function AdminEvents() {
                         <thead className="bg-surface-50 border-b border-surface-200">
                             <tr>
                                 <th className="text-left rtl:text-right px-4 py-3 font-semibold text-surface-600">Title</th>
-                                <th className="text-left rtl:text-right px-4 py-3 font-semibold text-surface-600">{t('events.date')}</th>
-                                <th className="text-left rtl:text-right px-4 py-3 font-semibold text-surface-600">Mode</th>
-                                <th className="text-left rtl:text-right px-4 py-3 font-semibold text-surface-600">{t('events.location')}</th>
+                                <th className="text-left rtl:text-right px-4 py-3 font-semibold text-surface-600">Date</th>
+                                <th className="text-left rtl:text-right px-4 py-3 font-semibold text-surface-600">Images</th>
                                 <th className="text-right rtl:text-left px-4 py-3 font-semibold text-surface-600">{t('common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-surface-100">
-                            {events.map(evt => (
+                            {pastEvents.map(evt => (
                                 <tr key={evt.id} className="hover:bg-surface-50 transition-colors">
-                                    <td className="px-4 py-3 font-medium text-surface-800 max-w-[200px] truncate">
+                                    <td className="px-4 py-3 font-medium text-surface-800 max-w-[250px] truncate">
                                         {evt.title_i18n[lang] || evt.title_i18n.fr}
                                     </td>
-                                    <td className="px-4 py-3 text-surface-500 text-xs">
-                                        {new Date(evt.startDate).toLocaleDateString(lang)}
+                                    <td className="px-4 py-3 text-surface-500">
+                                        {evt.date}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <Badge status={evt.mode} size="xs">{t(`events.${evt.mode}`)}</Badge>
-                                    </td>
-                                    <td className="px-4 py-3 text-surface-500 text-xs max-w-[150px] truncate">
-                                        {evt.location_i18n[lang] || evt.location_i18n.fr}
+                                        <div className="flex items-center gap-1 text-surface-500">
+                                            <ImageIcon size={14} />
+                                            <span>{evt.images.length}</span>
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-right rtl:text-left">
                                         <div className="flex gap-1 justify-end rtl:justify-start">
-                                            <button onClick={() => openEdit(evt)} className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 transition-colors" aria-label={t('admin.edit')}>
+                                            <button onClick={() => openEdit(evt)} className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 transition-colors">
                                                 <Pencil className="h-4 w-4" />
                                             </button>
-                                            <button onClick={() => setConfirmDelete(evt.id)} className="p-1.5 rounded-lg hover:bg-danger-50 text-danger-500 transition-colors" aria-label={t('admin.delete')}>
+                                            <button onClick={() => setConfirmDelete(evt.id)} className="p-1.5 rounded-lg hover:bg-danger-50 text-danger-500 transition-colors">
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
@@ -144,7 +135,7 @@ export default function AdminEvents() {
                         </tbody>
                     </table>
                 </div>
-                {events.length === 0 && (
+                {pastEvents.length === 0 && (
                     <div className="text-center py-12 text-surface-400">{t('admin.noData')}</div>
                 )}
             </div>
@@ -162,24 +153,57 @@ export default function AdminEvents() {
                         <Input label="Title (AR)" value={form.title_i18n.ar} onChange={(e) => updateI18n('title_i18n', 'ar', e.target.value)} />
                         <Input label="Title (EN)" value={form.title_i18n.en} onChange={(e) => updateI18n('title_i18n', 'en', e.target.value)} />
                     </div>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input label="Date (e.g. Mars 2026)" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
                         <Input label="Location (FR)" value={form.location_i18n.fr} onChange={(e) => updateI18n('location_i18n', 'fr', e.target.value)} />
-                        <Select
-                            label="Mode"
-                            options={[
-                                { value: 'onsite', label: t('events.onsite') },
-                                { value: 'online', label: t('events.online') },
-                            ]}
-                            value={form.mode}
-                            onChange={(e) => setForm({ ...form, mode: e.target.value })}
-                        />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input label="Start Date" type="datetime-local" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-                        <Input label="End Date" type="datetime-local" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
-                    </div>
+
                     <Input label="Description (FR)" type="textarea" value={form.description_i18n.fr} onChange={(e) => updateI18n('description_i18n', 'fr', e.target.value)} />
-                    <Input label={t('opportunities.tags') + ' (comma-separated)'} value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} />
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-surface-700 mb-1">
+                            Photographies
+                        </label>
+                        <input 
+                            type="file" 
+                            multiple 
+                            accept="image/*"
+                            onChange={(e) => {
+                                const files = Array.from(e.target.files);
+                                Promise.all(files.map(file => {
+                                    return new Promise((resolve) => {
+                                        const reader = new FileReader();
+                                        reader.onload = (ev) => resolve(ev.target.result);
+                                        reader.readAsDataURL(file);
+                                    });
+                                })).then(base64Images => {
+                                    setForm(prev => ({
+                                        ...prev,
+                                        images: [...(prev.images || []), ...base64Images]
+                                    }));
+                                });
+                            }}
+                            className="w-full px-3 py-2 border border-surface-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm"
+                        />
+                        {form.images && form.images.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {form.images.map((img, idx) => (
+                                    <div key={idx} className="relative w-16 h-16 group">
+                                        <img src={img} alt="" className="w-full h-full object-cover rounded-lg border border-surface-200" />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setForm(prev => ({...prev, images: prev.images.filter((_, i) => i !== idx)}))}
+                                            className="absolute -top-1.5 -right-1.5 bg-danger-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="flex justify-end gap-2 pt-4 border-t border-surface-200">
                         <Button variant="secondary" onClick={() => setFormOpen(false)}>{t('admin.cancel')}</Button>
                         <Button onClick={handleSave}>{t('admin.save')}</Button>

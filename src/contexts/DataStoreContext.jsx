@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import { mockOpportunities, mockEvents, mockSubmissions } from '../data/mockData';
+import { pastEvents as initialPastEvents } from '../features/events/pastEventsData';
 
 const DataStoreContext = createContext(null);
 
@@ -7,6 +8,7 @@ const initialState = {
     opportunities: mockOpportunities,
     events: mockEvents,
     submissions: mockSubmissions,
+    pastEvents: initialPastEvents,
     registrations: {},
     loading: false,
 };
@@ -46,6 +48,22 @@ function dataReducer(state, action) {
             return {
                 ...state,
                 events: state.events.filter(e => e.id !== action.payload),
+            };
+        
+        // Past Events
+        case 'ADD_PAST_EVENT':
+            return { ...state, pastEvents: [...state.pastEvents, action.payload] };
+        case 'UPDATE_PAST_EVENT':
+            return {
+                ...state,
+                pastEvents: state.pastEvents.map(e =>
+                    e.id === action.payload.id ? action.payload : e
+                ),
+            };
+        case 'DELETE_PAST_EVENT':
+            return {
+                ...state,
+                pastEvents: state.pastEvents.filter(e => e.id !== action.payload),
             };
 
         // Submissions
@@ -104,6 +122,18 @@ export function DataStoreProvider({ children }) {
         dispatch({ type: 'DELETE_EVENT', payload: id });
     }, []);
 
+    const addPastEvent = useCallback((event) => {
+        dispatch({ type: 'ADD_PAST_EVENT', payload: { ...event, id: Date.now().toString() } });
+    }, []);
+
+    const updatePastEvent = useCallback((event) => {
+        dispatch({ type: 'UPDATE_PAST_EVENT', payload: event });
+    }, []);
+
+    const deletePastEvent = useCallback((id) => {
+        dispatch({ type: 'DELETE_PAST_EVENT', payload: id });
+    }, []);
+
     const addSubmission = useCallback((submission) => {
         const count = state.submissions.length + 1;
         const refCode = `CMC-IDEA-2026-${String(count).padStart(4, '0')}`;
@@ -142,6 +172,9 @@ export function DataStoreProvider({ children }) {
                 addEvent,
                 updateEvent,
                 deleteEvent,
+                addPastEvent,
+                updatePastEvent,
+                deletePastEvent,
                 addSubmission,
                 updateSubmission,
                 registerForEvent,

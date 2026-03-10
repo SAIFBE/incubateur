@@ -86,11 +86,11 @@ export default function Home() {
                         </Link>
                     </div>
                     {featuredOpps.length > 0 ? (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {featuredOpps.map(opp => (
                                 <Link key={opp.id} to={`/opportunities/${opp.id}`}>
-                                    <Card className="h-full">
-                                        <div className="flex items-center gap-2 mb-3">
+                                    <Card className="h-full p-6 md:p-8 shadow-md">
+                                        <div className="flex items-center gap-2 mb-4">
                                             <Badge status={opp.status}>
                                                 {t(`opportunities.${opp.status}`)}
                                             </Badge>
@@ -138,11 +138,11 @@ export default function Home() {
                         </Link>
                     </div>
                     {upcomingEvents.length > 0 ? (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {upcomingEvents.map(event => (
                                 <Link key={event.id} to={`/events/${event.id}`}>
-                                    <Card className="h-full">
-                                        <div className="flex items-center gap-2 mb-3">
+                                    <Card className="h-full p-6 md:p-8 shadow-md">
+                                        <div className="flex items-center gap-2 mb-4">
                                             <Badge status={event.mode}>
                                                 {t(`events.${event.mode}`)}
                                             </Badge>

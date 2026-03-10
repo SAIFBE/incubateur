@@ -8,7 +8,8 @@
         "mySubmissions": "My Submissions",
         "faq": "FAQ",
         "contact": "Contact",
-        "admin": "Admin",
+        "pastEvents": "Past Events",
+        "admin": "Administration",
         "login": "Login",
         "logout": "Logout"
     },
@@ -242,6 +243,7 @@
         "dashboard": "Dashboard",
         "opportunities": "Opportunities",
         "events": "Events",
+        "pastEvents": "Past Events",
         "submissions": "Submissions",
         "login": {
             "title": "Admin Login",
@@ -308,6 +310,12 @@
         "quickLinks": "Quick Links",
         "contact": "Contact",
         "followUs": "Follow Us",
-        "rights": "© 2026 CMC BMK Incubator. All rights reserved."
+        "rights": "© 2026 Incubateur CMC BMK. All rights reserved."
+    },
+    "pastEvents": {
+        "title": "Past Events",
+        "subtitle": "Discover highlights from our past activities",
+        "viewGallery": "View Gallery",
+        "backToList": "Back to past events"
     }
 }

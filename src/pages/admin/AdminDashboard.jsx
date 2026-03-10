@@ -26,14 +26,14 @@ export default function AdminDashboard() {
 
     return (
         <div className="fade-in space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center text-center pb-2">
                 <h1 className="text-2xl font-bold text-surface-900">{t('admin.dashboard')}</h1>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (
-                    <Card key={i} hover={false} className="flex items-center gap-4">
+                    <Card key={i} hover={false} className="flex items-center gap-4 p-6 md:p-8 shadow-md">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
                             <stat.icon className="h-6 w-6" />
                         </div>
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
 
             <div className="grid lg:grid-cols-2 gap-8">
                 {/* Quick Actions */}
-                <Card hover={false}>
+                <Card hover={false} className="p-6 md:p-8 shadow-md">
                     <h2 className="text-lg font-bold text-surface-900 mb-4">{t('admin.quickActions')}</h2>
                     <div className="grid grid-cols-2 gap-3">
                         <Link to="/admin/opportunities">
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
                 </Card>
 
                 {/* Recent Submissions */}
-                <Card hover={false}>
+                <Card hover={false} className="p-6 md:p-8 shadow-md">
                     <h2 className="text-lg font-bold text-surface-900 mb-4">{t('admin.recentActivity')}</h2>
                     {recentSubmissions.length > 0 ? (
                         <div className="space-y-3">

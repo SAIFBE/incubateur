@@ -17,7 +17,7 @@ export default function MySubmissions() {
 
     return (
         <div className="fade-in">
-            <div className="hero-gradient text-white py-16">
+            <div className="hero-gradient text-white py-16 text-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('mySubmissions.title')}</h1>
                     <p className="text-white/80 text-lg">{t('mySubmissions.subtitle')}</p>
@@ -42,7 +42,7 @@ export default function MySubmissions() {
                 ) : (
                     <div className="space-y-4">
                         {submissions.map(sub => (
-                            <Card key={sub.id} hover={false} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <Card key={sub.id} hover={false} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 md:p-8 shadow-md">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                                         <span className="text-xs font-mono bg-surface-100 px-2 py-1 rounded text-surface-600">

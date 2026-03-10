@@ -58,7 +58,7 @@ export default function Opportunities() {
 
     return (
         <div className="fade-in">
-            <div className="hero-gradient text-white py-16">
+            <div className="hero-gradient text-white py-16 text-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('opportunities.title')}</h1>
                     <p className="text-white/80 text-lg">{t('opportunities.subtitle')}</p>
@@ -143,12 +143,12 @@ export default function Opportunities() {
                         {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
                     </div>
                 ) : filtered.length > 0 ? (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filtered.map(opp => {
                             const isDeadlineSoon = new Date(opp.deadline) - new Date() < 7 * 24 * 60 * 60 * 1000 && opp.status === 'open';
                             return (
                                 <Link key={opp.id} to={`/opportunities/${opp.id}`}>
-                                    <Card className="h-full flex flex-col">
+                                    <Card className="h-full flex flex-col p-6 md:p-8 shadow-md">
                                         <div className="flex items-center gap-2 mb-3 flex-wrap">
                                             <Badge status={opp.status}>
                                                 {t(`opportunities.${opp.status}`)}

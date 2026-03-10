@@ -8,6 +8,7 @@
         "mySubmissions": "Mes soumissions",
         "faq": "FAQ",
         "contact": "Contact",
+        "pastEvents": "Événements réalisés",
         "admin": "Administration",
         "login": "Connexion",
         "logout": "Déconnexion"
@@ -242,6 +243,7 @@
         "dashboard": "Tableau de bord",
         "opportunities": "Opportunités",
         "events": "Événements",
+        "pastEvents": "Événements réalisés",
         "submissions": "Soumissions",
         "login": {
             "title": "Connexion Administration",
@@ -309,5 +311,11 @@
         "contact": "Contact",
         "followUs": "Suivez-nous",
         "rights": "© 2026 Incubateur CMC BMK. Tous droits réservés."
+    },
+    "pastEvents": {
+        "title": "Événements réalisés",
+        "subtitle": "Découvrez les moments forts de nos activités passées",
+        "viewGallery": "Voir la galerie",
+        "backToList": "Retour aux événements réalisés"
     }
 }

@@ -41,7 +41,7 @@ export default function Contact() {
 
     return (
         <div className="fade-in">
-            <div className="hero-gradient text-white py-16">
+            <div className="hero-gradient text-white py-16 text-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('contact.title')}</h1>
                     <p className="text-white/80 text-lg">{t('contact.subtitle')}</p>
@@ -59,7 +59,7 @@ export default function Contact() {
                     <div className="space-y-4">
                         <h2 className="text-xl font-bold text-surface-900 mb-4">{t('contact.info.title')}</h2>
                         {contactInfo.map((item, i) => (
-                            <Card key={i} hover={false} className="flex items-center gap-4 p-4">
+                            <Card key={i} hover={false} className="flex items-center gap-4 p-6 shadow-md">
                                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <item.icon className="h-5 w-5 text-primary-600" />
                                 </div>
@@ -71,7 +71,7 @@ export default function Contact() {
                     {/* Contact Form */}
                     <div className="md:col-span-2">
                         {sent ? (
-                            <Card hover={false} className="text-center py-12">
+                            <Card hover={false} className="text-center py-16 shadow-lg">
                                 <CheckCircle className="h-16 w-16 text-success-500 mx-auto mb-4" />
                                 <h3 className="text-xl font-bold text-surface-900 mb-2">{t('contact.success')}</h3>
                                 <p className="text-surface-500">{t('contact.successDesc')}</p>
@@ -80,7 +80,7 @@ export default function Contact() {
                                 </Button>
                             </Card>
                         ) : (
-                            <Card hover={false}>
+                            <Card hover={false} className="p-8 md:p-16 shadow-lg max-w-3xl mx-auto">
                                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                                     <div className="grid sm:grid-cols-2 gap-5">
                                         <Input

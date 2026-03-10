@@ -64,7 +64,7 @@ export default function AdminSubmissions() {
 
     return (
         <div className="fade-in space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex flex-col items-center justify-center text-center gap-4 mb-2">
                 <h1 className="text-2xl font-bold text-surface-900">{t('admin.submissions')}</h1>
                 <Button variant="secondary" icon={Download} onClick={exportCSV} size="sm">
                     {t('admin.export')}
@@ -72,7 +72,7 @@ export default function AdminSubmissions() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl border border-surface-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-surface-200 shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-surface-50 border-b border-surface-200">

@@ -48,9 +48,9 @@ export default function OpportunityDetail() {
 
     return (
         <div className="fade-in">
-            <div className="hero-gradient text-white py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-2 mb-4">
+            <div className="hero-gradient text-white py-16 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-2 mb-4">
                         <Badge status={opp.status} className="text-white border border-white/30">
                             {t(`opportunities.${opp.status}`)}
                         </Badge>
@@ -74,14 +74,14 @@ export default function OpportunityDetail() {
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-sm">
+                        <div className="bg-white rounded-2xl border border-surface-200 p-6 md:p-8 shadow-md">
                             <h2 className="text-xl font-bold text-surface-900 mb-4">Description</h2>
                             <p className="text-surface-600 leading-relaxed whitespace-pre-line">
                                 {opp.summary_i18n[lang] || opp.summary_i18n.fr}
                             </p>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-sm">
+                        <div className="bg-white rounded-2xl border border-surface-200 p-6 md:p-8 shadow-md">
                             <h2 className="text-xl font-bold text-surface-900 mb-4">{t('opportunities.eligibility')}</h2>
                             <p className="text-surface-600 leading-relaxed">
                                 {opp.eligibility_i18n[lang] || opp.eligibility_i18n.fr}
@@ -91,7 +91,7 @@ export default function OpportunityDetail() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white rounded-2xl border border-surface-200 p-6 shadow-sm space-y-4">
+                        <div className="bg-white rounded-2xl border border-surface-200 p-6 md:p-8 shadow-md space-y-4">
                             <div className="flex items-center gap-3">
                                 <Calendar className="h-5 w-5 text-primary-500" />
                                 <div>

@@ -44,6 +44,7 @@ export default function Navbar() {
             { path: "/about", label: t("nav.about") },
             { path: "/opportunities", label: t("nav.opportunities") },
             { path: "/events", label: t("nav.events") },
+            { path: "/past-events", label: t("nav.pastEvents") },
             { path: "/submit", label: t("nav.submit") },
             { path: "/my-submissions", label: t("nav.mySubmissions") },
             { path: "/faq", label: t("nav.faq") },

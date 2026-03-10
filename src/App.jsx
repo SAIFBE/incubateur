@@ -14,11 +14,13 @@ import SubmitIdea from './pages/SubmitIdea';
 import MySubmissions from './pages/MySubmissions';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
+import PastEventsPage from './features/events/PastEventsPage';
 import NotFound from './pages/NotFound';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminOpportunities from './pages/admin/AdminOpportunities';
 import AdminEvents from './pages/admin/AdminEvents';
+import AdminPastEvents from './pages/admin/AdminPastEvents';
 import AdminSubmissions from './pages/admin/AdminSubmissions';
 
 function AppContent() {
@@ -43,6 +45,7 @@ function AppContent() {
         <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/past-events" element={<PastEventsPage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 
@@ -51,6 +54,7 @@ function AppContent() {
         <Route index element={<AdminDashboard />} />
         <Route path="opportunities" element={<AdminOpportunities />} />
         <Route path="events" element={<AdminEvents />} />
+        <Route path="past-events" element={<AdminPastEvents />} />
         <Route path="submissions" element={<AdminSubmissions />} />
       </Route>
     </Routes>

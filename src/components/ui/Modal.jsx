@@ -34,33 +34,40 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
 
     return (
         <div
-            ref={overlayRef}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm fade-in"
-            onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
         >
             <div
+                className="fixed inset-0"
+                ref={overlayRef}
+                onClick={onClose}
+            />
+            <div
                 ref={contentRef}
                 tabIndex={-1}
                 className={`
-          bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]}
-          max-h-[90vh] flex flex-col
-          transform transition-all duration-200
-        `}
+                    bg-white rounded-[2rem] shadow-2xl w-full ${sizeClasses[size]}
+                    flex flex-col relative overflow-hidden transition-all duration-300
+                    fade-in max-h-[90vh]`
+                }
             >
-                <div className="flex items-center justify-between p-6 border-b border-surface-200">
-                    <h2 id="modal-title" className="text-xl font-bold text-surface-900">{title}</h2>
+                {/* Header: Always visible */}
+                <div className="flex items-center justify-between p-6 md:px-10 border-b border-surface-100 bg-surface-50/30 backdrop-blur-sm shrink-0">
+                    <div className="w-10"></div>
+                    <h2 id="modal-title" className="text-xl md:text-2xl font-bold text-surface-900 flex-1 text-center">{title}</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors"
+                        className="p-2.5 rounded-2xl hover:bg-surface-200 text-surface-500 hover:text-surface-900 transition-all duration-200"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
                     </button>
                 </div>
-                <div className="p-6 overflow-y-auto flex-1">
+
+                {/* Body: Scrollable */}
+                <div className="p-6 md:p-10 overflow-y-auto grow">
                     {children}
                 </div>
             </div>

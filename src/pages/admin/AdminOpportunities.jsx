@@ -97,9 +97,9 @@ export default function AdminOpportunities() {
 
     return (
         <div className="fade-in space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex flex-col items-center justify-center text-center gap-4 mb-2">
                 <h1 className="text-2xl font-bold text-surface-900">{t('admin.opportunities')}</h1>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <Button variant="secondary" icon={Download} onClick={exportCSV} size="sm">
                         {t('admin.export')}
                     </Button>
@@ -110,7 +110,7 @@ export default function AdminOpportunities() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl border border-surface-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-surface-200 shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-surface-50 border-b border-surface-200">
@@ -155,8 +155,13 @@ export default function AdminOpportunities() {
                 )}
             </div>
 
-            {/* Add/Edit Modal */}
-            <Modal isOpen={formOpen} onClose={() => setFormOpen(false)} title={editing ? t('admin.edit') : t('admin.add')} size="lg">
+            {/* Form Modal */}
+            <Modal
+                isOpen={formOpen}
+                onClose={() => setFormOpen(false)}
+                title={editing ? t('admin.edit') : t('admin.add')}
+                size="xl"
+            >
                 <div className="space-y-4">
                     <div className="space-y-3">
                         <Input label="Title (FR)" value={form.title_i18n.fr} onChange={(e) => updateI18n('title_i18n', 'fr', e.target.value)} />

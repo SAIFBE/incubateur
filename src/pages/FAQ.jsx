@@ -14,7 +14,7 @@ export default function FAQ() {
 
     return (
         <div className="fade-in">
-            <div className="hero-gradient text-white py-16">
+            <div className="hero-gradient text-white py-16 text-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('faq.title')}</h1>
                     <p className="text-white/80 text-lg">{t('faq.subtitle')}</p>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Briefcase, Calendar, FileText, LogOut, Shield, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Calendar, FileText, Image as ImageIcon, LogOut, Shield, Menu, X } from 'lucide-react';
 import { useUI } from '../../contexts/UIContext';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
@@ -20,6 +20,7 @@ export default function AdminLayout() {
         { path: '/admin', label: t('admin.dashboard'), icon: LayoutDashboard, exact: true },
         { path: '/admin/opportunities', label: t('admin.opportunities'), icon: Briefcase },
         { path: '/admin/events', label: t('admin.events'), icon: Calendar },
+        { path: '/admin/past-events', label: t('admin.pastEvents'), icon: ImageIcon },
         { path: '/admin/submissions', label: t('admin.submissions'), icon: FileText },
     ];
 
