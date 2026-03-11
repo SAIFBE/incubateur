@@ -1,22 +1,40 @@
 @import "tailwindcss";
 
+/* Dashboard CSS Modules */
+@import "./styles/variables.css";
+@import "./styles/globals.css";
+@import "./styles/components.css";
+@import "./styles/layout.css";
+@import "./styles/dashboard.css";
+@import "./features/auth/auth.css";
+@import "./features/trainee/trainee.css";
+@import "./features/admin/admin.css";
+
 /* =========================================================
    THEME TOKENS (Tailwind v4 @theme)
    ========================================================= */
 @theme {
-  /* Primary */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* DARK TECH THEME VARIABLES */
+  
+  /* Primary Backgrounds */
+  --bg-primary: #0B0F19;
+  --bg-secondary: #121826;
+  --bg-card: #1A2236;
+  --bg-card-hover: #1F2940;
 
-  /* Accent */
+  /* Primary Brand (Purples/Indigo) */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  /* Accent Glow (Violets/Cyan) */
   --color-accent-50: #f5f3ff;
   --color-accent-100: #ede9fe;
   --color-accent-200: #ddd6fe;
@@ -25,33 +43,37 @@
   --color-accent-500: #8b5cf6;
   --color-accent-600: #7c3aed;
   --color-accent-700: #6d28d9;
-  --color-accent-800: #5b21b6;
-  --color-accent-900: #4c1d95;
+  --color-highlight: #22D3EE;
 
   /* Semantic */
-  --color-success-50: #f0fdf4;
+  --color-success-50: #052e16;
   --color-success-500: #22c55e;
   --color-success-600: #16a34a;
 
-  --color-warning-50: #fffbeb;
+  --color-warning-50: #451a03;
   --color-warning-500: #f59e0b;
   --color-warning-600: #d97706;
 
-  --color-danger-50: #fef2f2;
+  --color-danger-50: #450a0a;
   --color-danger-500: #ef4444;
   --color-danger-600: #dc2626;
 
-  /* Surfaces */
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
-  --color-surface-600: #475569;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
+  /* Surfaces (Dark Mode Overrides) */
+  --color-surface-50: #0B0F19;
+  --color-surface-100: #121826;
+  --color-surface-200: #1A2236;
+  --color-surface-300: #1F2940;
+  --color-surface-400: #334155;
+  --color-surface-500: #475569;
+  --color-surface-600: #64748b;
+  --color-surface-700: #94a3b8;
+  --color-surface-800: #cbd5e1;
+  --color-surface-900: #f1f5f9;
+
+  /* Text Colors */
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
 
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
@@ -93,8 +115,8 @@
   body {
     margin: 0;
     font-family: var(--font-sans);
-    color: var(--color-surface-800);
-    background: var(--color-surface-50);
+    color: var(--text-primary);
+    background: var(--bg-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -102,7 +124,8 @@
 
   /* Better default selection */
   ::selection {
-    background: color-mix(in srgb, var(--color-primary-500) 25%, transparent);
+    background: color-mix(in srgb, var(--color-primary-500) 40%, transparent);
+    color: #fff;
   }
 
   /* Images behave */
@@ -333,7 +356,7 @@
   @keyframes fadeUp {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -342,6 +365,149 @@
   }
 
   .fade-in {
-    animation: fadeUp 360ms var(--ease-out) forwards;
+    animation: fadeUp 0.6s var(--ease-out) forwards;
+  }
+
+  .fade-in-up {
+    animation: fadeUp 0.6s var(--ease-out) forwards;
+    opacity: 0;
+  }
+
+  /* Stagger delays for list items */
+  .stagger-1 { animation-delay: 100ms; }
+  .stagger-2 { animation-delay: 200ms; }
+  .stagger-3 { animation-delay: 300ms; }
+  .stagger-4 { animation-delay: 400ms; }
+  .stagger-5 { animation-delay: 500ms; }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 3s infinite ease-in-out;
+  }
+
+  /* ---------- Dark Tech Modern UI Components ---------- */
+
+  /* Gradients */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400), var(--color-highlight));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary-600), var(--color-accent-600));
+  }
+
+  /* Modern Card */
+  .card-modern {
+    background-color: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    color: var(--text-primary);
+  }
+
+  .card-modern:hover {
+    transform: translateY(-5px);
+    border-color: rgba(124, 58, 237, 0.4); /* accent-600 */
+    box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+  }
+
+  /* Glass Panel for navbars/stickies */
+  .glass-panel {
+    background: rgba(18, 24, 38, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Modern Buttons */
+  .modern-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .modern-btn:hover {
+    transform: translateY(-2px);
+    background: var(--bg-card-hover);
+  }
+
+  .modern-btn-primary {
+    background: linear-gradient(135deg, var(--color-primary-600), var(--color-accent-600));
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  }
+
+  .modern-btn-primary:hover {
+    background: linear-gradient(135deg, var(--color-primary-500), var(--color-accent-500));
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+    background: var(--color-primary-500); /* Fallback */
+  }
+
+  /* Animated underline effect for nav links */
+  .hover-underline {
+    position: relative;
+    padding-bottom: 4px;
+  }
+  
+  .hover-underline::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--color-highlight);
+    transition: width 0.3s ease;
+  }
+
+  .hover-underline:hover::after,
+  .hover-underline.active::after {
+    width: 100%;
+  }
+
+  /* Modern Form Inputs */
+  .modern-input {
+    width: 100%;
+    background-color: var(--bg-secondary);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+  }
+
+  .modern-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .modern-input:focus {
+    outline: none;
+    border-color: var(--color-highlight);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+    background-color: var(--bg-card);
   }
 }

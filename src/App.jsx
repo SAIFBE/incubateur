@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { DataStoreProvider } from './contexts/DataStoreContext';
@@ -10,18 +10,15 @@ import Opportunities from './pages/Opportunities';
 import OpportunityDetail from './pages/OpportunityDetail';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
-import SubmitIdea from './pages/SubmitIdea';
-import MySubmissions from './pages/MySubmissions';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 import PastEventsPage from './features/events/PastEventsPage';
-import NotFound from './pages/NotFound';
-import AdminLayout from './pages/admin/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminOpportunities from './pages/admin/AdminOpportunities';
-import AdminEvents from './pages/admin/AdminEvents';
-import AdminPastEvents from './pages/admin/AdminPastEvents';
-import AdminSubmissions from './pages/admin/AdminSubmissions';
+
+// Dashboard Module Contexts & Router
+import { AuthProvider } from './contexts/AuthContext';
+import { AppDataProvider } from './contexts/AppDataContext';
+import { ToastProvider } from './components/ui/Toast';
+import AppRouter from './app/AppRouter';
 
 function AppContent() {
   const { i18n } = useTranslation();
@@ -41,22 +38,18 @@ function AppContent() {
         <Route path="/opportunities/:id" element={<OpportunityDetail />} />
         <Route path="/events" element={<Events />} />
         <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/submit" element={<SubmitIdea />} />
-        <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/past-events" element={<PastEventsPage />} />
-        <Route path="*" element={<NotFound />} />
       </Route>
 
-      {/* Admin routes with admin layout */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="opportunities" element={<AdminOpportunities />} />
-        <Route path="events" element={<AdminEvents />} />
-        <Route path="past-events" element={<AdminPastEvents />} />
-        <Route path="submissions" element={<AdminSubmissions />} />
-      </Route>
+      {/* Admin, Trainee, and Auth Routes handled by AppRouter */}
+      <Route path="/*" element={<AppRouter />} />
+      
+      {/* Legacy Route Redirects */}
+      <Route path="/submit" element={<Navigate to="/dashboard/trainee/new-submission" replace />} />
+      <Route path="/my-submissions" element={<Navigate to="/dashboard/trainee/my-submissions" replace />} />
+      <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
     </Routes>
   );
 }
@@ -66,7 +59,13 @@ export default function App() {
     <HashRouter>
       <UIProvider>
         <DataStoreProvider>
-          <AppContent />
+          <AuthProvider>
+            <AppDataProvider>
+              <ToastProvider>
+                <AppContent />
+              </ToastProvider>
+            </AppDataProvider>
+          </AuthProvider>
         </DataStoreProvider>
       </UIProvider>
     </HashRouter>

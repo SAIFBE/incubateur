@@ -77,19 +77,20 @@ export default function EventDetail() {
     const endDate = new Date(event.endDate);
 
     return (
-        <div className="fade-in">
-            <div className="hero-gradient text-white py-16 text-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                        <Badge status={event.mode} className="border border-white/30">
+        <div className="fade-in pb-20">
+            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-dots opacity-30"></div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center relative z-10">
+                    <div className="flex items-center justify-center gap-2 mb-6">
+                        <Badge status={event.mode} className="border border-white/10 bg-surface-900/50 backdrop-blur-md">
                             {event.mode === 'online' ? (
-                                <span className="flex items-center gap-1"><Wifi className="h-3 w-3" /> {t('events.online')}</span>
+                                <span className="flex items-center gap-2"><Wifi className="h-4 w-4" /> {t('events.online')}</span>
                             ) : (
-                                <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {t('events.onsite')}</span>
+                                <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {t('events.onsite')}</span>
                             )}
                         </Badge>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-bold">
+                    <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
                         {event.title_i18n[lang] || event.title_i18n.fr}
                     </h1>
                 </div>
@@ -104,85 +105,122 @@ export default function EventDetail() {
 
                 <div className="grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
-                        <Card hover={false} className="p-6 md:p-8 shadow-md">
-                            <p className="text-surface-600 leading-relaxed whitespace-pre-line">
+                        <div className="card-modern p-8 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-500/5 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2 group-hover:bg-primary-500/10 transition-colors"></div>
+                            
+                            <h3 className="text-2xl font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+                                <span className="w-2 h-6 bg-primary-500 rounded-full"></span>
+                                À propos de l'événement
+                            </h3>
+                            <p className="text-surface-300 leading-relaxed whitespace-pre-line text-lg relative z-10">
                                 {event.description_i18n[lang] || event.description_i18n.fr}
                             </p>
-                            <div className="flex flex-wrap gap-2 mt-6">
+                            <div className="flex flex-wrap gap-2 mt-8 relative z-10">
                                 {event.tags.map(tag => (
-                                    <Badge key={tag} color="gray">#{tag}</Badge>
+                                    <span key={tag} className="text-sm font-medium px-3 py-1.5 rounded-md bg-surface-800 text-surface-300 border border-white/5">#{tag}</span>
                                 ))}
                             </div>
-                        </Card>
+                        </div>
                     </div>
 
                     <div className="space-y-6">
-                        <Card hover={false} className="p-6 md:p-8 shadow-md space-y-4">
-                            <div className="flex items-center gap-3">
-                                <Calendar className="h-5 w-5 text-primary-500" />
+                        <div className="card-modern p-8 space-y-6">
+                            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                                <span className="w-2 h-5 bg-highlight rounded-full"></span>
+                                Informations
+                            </h3>
+                            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-800/50 border border-white/5 transition-colors hover:bg-surface-800 group">
+                                <div className="w-10 h-10 rounded-lg bg-surface-900 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all">
+                                    <Calendar className="h-5 w-5 text-primary-400 group-hover:text-highlight transition-colors" />
+                                </div>
                                 <div>
-                                    <div className="text-xs text-surface-400">{t('events.date')}</div>
-                                    <div className="font-semibold text-surface-800">
+                                    <div className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-1">{t('events.date')}</div>
+                                    <div className="font-medium text-white">
                                         {startDate.toLocaleDateString(lang, {
                                             day: 'numeric', month: 'long', year: 'numeric'
                                         })}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Clock className="h-5 w-5 text-primary-500" />
+                            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-800/50 border border-white/5 transition-colors hover:bg-surface-800 group">
+                                <div className="w-10 h-10 rounded-lg bg-surface-900 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all">
+                                    <Clock className="h-5 w-5 text-primary-400 group-hover:text-highlight transition-colors" />
+                                </div>
                                 <div>
-                                    <div className="text-xs text-surface-400">{t('events.time')}</div>
-                                    <div className="font-semibold text-surface-800">
+                                    <div className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-1">{t('events.time')}</div>
+                                    <div className="font-medium text-white">
                                         {startDate.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}
                                         {' - '}
                                         {endDate.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <MapPin className="h-5 w-5 text-primary-500" />
+                            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-800/50 border border-white/5 transition-colors hover:bg-surface-800 group">
+                                <div className="w-10 h-10 rounded-lg bg-surface-900 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all">
+                                    <MapPin className="h-5 w-5 text-primary-400 group-hover:text-highlight transition-colors" />
+                                </div>
                                 <div>
-                                    <div className="text-xs text-surface-400">{t('events.location')}</div>
-                                    <div className="font-semibold text-surface-800">
+                                    <div className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-1">{t('events.location')}</div>
+                                    <div className="font-medium text-white">
                                         {event.location_i18n[lang] || event.location_i18n.fr}
                                     </div>
                                 </div>
                             </div>
 
-                            {registered ? (
-                                <div className="bg-success-50 text-success-600 rounded-xl p-3 text-center font-semibold text-sm">
-                                    ✓ {t('events.registered')}
-                                </div>
-                            ) : showRegForm ? (
-                                <form onSubmit={handleSubmit(onRegister)} className="space-y-3 pt-2 border-t border-surface-100">
-                                    <h4 className="font-semibold text-surface-800">{t('events.registerTitle')}</h4>
-                                    <Input
-                                        label={t('events.registerName')}
-                                        {...register('name')}
-                                        error={errors.name?.message}
-                                    />
-                                    <Input
-                                        label={t('events.registerEmail')}
-                                        type="email"
-                                        {...register('email')}
-                                        error={errors.email?.message}
-                                    />
-                                    <div className="flex gap-2">
-                                        <Button type="submit" loading={isSubmitting} size="sm" className="flex-1">
-                                            {t('events.register')}
-                                        </Button>
-                                        <Button type="button" variant="ghost" size="sm" onClick={() => setShowRegForm(false)}>
-                                            {t('admin.cancel')}
-                                        </Button>
+                            <div className="pt-6 mt-6 border-t border-white/10">
+                                {registered ? (
+                                    <div className="bg-success-500/10 border border-success-500/30 text-success-400 rounded-xl p-4 text-center font-semibold flex items-center justify-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-success-400 animate-pulse"></div>
+                                        {t('events.registered')}
                                     </div>
-                                </form>
-                            ) : (
-                                <Button className="w-full" onClick={() => setShowRegForm(true)} icon={Users}>
-                                    {t('events.register')}
-                                </Button>
-                            )}
-                        </Card>
+                                ) : showRegForm ? (
+                                    <form onSubmit={handleSubmit(onRegister)} className="space-y-4">
+                                        <h4 className="font-bold text-white mb-2">{t('events.registerTitle')}</h4>
+                                        <div className="space-y-2">
+                                            <input
+                                                className="modern-input py-2.5"
+                                                placeholder={t('events.registerName')}
+                                                {...register('name')}
+                                            />
+                                            {errors.name?.message && <span className="text-error-400 text-xs mt-1 block">{errors.name.message}</span>}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <input
+                                                type="email"
+                                                className="modern-input py-2.5"
+                                                placeholder={t('events.registerEmail')}
+                                                {...register('email')}
+                                            />
+                                            {errors.email?.message && <span className="text-error-400 text-xs mt-1 block">{errors.email.message}</span>}
+                                        </div>
+                                        <div className="flex gap-3 pt-2">
+                                            <button 
+                                                type="submit" 
+                                                disabled={isSubmitting}
+                                                className="modern-btn modern-btn-primary flex-1 py-2.5 text-sm"
+                                            >
+                                                {isSubmitting ? t('admin.loading') : t('events.register')}
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="modern-btn py-2.5 px-4 text-sm" 
+                                                onClick={() => setShowRegForm(false)}
+                                            >
+                                                {t('admin.cancel')}
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <button 
+                                        className="modern-btn modern-btn-primary w-full py-4 text-lg flex items-center justify-center gap-2" 
+                                        onClick={() => setShowRegForm(true)}
+                                    >
+                                        <Users className="w-5 h-5" />
+                                        {t('events.register')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

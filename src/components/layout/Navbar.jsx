@@ -5,9 +5,9 @@ import { Menu, X, Globe, ChevronDown, Shield } from "lucide-react";
 import { useUI } from "../../contexts/UIContext";
 
 const LANGUAGES = [
-    { code: "fr", label: "Français", flag: "🇫🇷" },
-    { code: "ar", label: "العربية", flag: "🇲🇦" },
-    { code: "en", label: "English", flag: "🇬🇧" },
+    { code: "fr", label: "FR", flag: "🇫🇷" },
+    { code: "ar", label: "AR", flag: "🇲🇦" },
+    { code: "en", label: "EN", flag: "🇬🇧" },
 ];
 
 function cx(...classes) {
@@ -46,7 +46,6 @@ export default function Navbar() {
             { path: "/events", label: t("nav.events") },
             { path: "/past-events", label: t("nav.pastEvents") },
             { path: "/submit", label: t("nav.submit") },
-            { path: "/my-submissions", label: t("nav.mySubmissions") },
             { path: "/faq", label: t("nav.faq") },
             { path: "/contact", label: t("nav.contact") },
         ],
@@ -117,26 +116,35 @@ export default function Navbar() {
         };
     }, [mobileOpen]);
 
-    const baseLink =
-        "px-3 py-2 rounded-lg text-sm font-medium transition-colors";
-    const activeLink = "bg-primary-50 text-primary-700";
-    const idleLink =
-        "text-surface-600 hover:text-surface-900 hover:bg-surface-100";
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const baseLink = "px-3 py-2 rounded-lg text-sm font-medium transition-colors hover-underline";
+    const activeLink = "text-highlight active";
+    const idleLink = "text-surface-700 hover:text-white";
 
     return (
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-surface-200">
+        <header className={cx(
+            "fixed top-0 w-full z-50 transition-all duration-300",
+            scrolled ? "glass-panel shadow-glow py-2" : "bg-transparent py-4"
+        )}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
+                <div className="flex items-center justify-between h-14">
                     {/* Logo */}
                     <Link
                         to="/"
-                        className="flex items-center gap-2 font-bold text-lg text-primary-700"
+                        className="flex items-center gap-3 font-bold text-xl tracking-tight group"
                         aria-label="CMC BMK Home"
                     >
-                        <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center text-white text-lg font-bold shadow-[0_0_15px_rgba(79,70,229,0.5)] group-hover:scale-105 transition-transform duration-300">
                             C
                         </div>
-                        <span className="hidden sm:inline">CMC BMK</span>
+                        <span className="hidden sm:inline text-white">CMC <span className="text-gradient">BMK</span></span>
                     </Link>
 
                     {/* Desktop Nav */}
@@ -157,21 +165,21 @@ export default function Navbar() {
                     </nav>
 
                     {/* Right side */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                         {/* Language Switcher */}
                         <div className="relative">
                             <button
                                 ref={langBtnRef}
                                 type="button"
                                 onClick={() => setLangOpen((v) => !v)}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-100 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-surface-700 hover:text-white hover:bg-white/5 transition-colors"
                                 aria-label={t("common.language")}
                                 aria-haspopup="menu"
                                 aria-expanded={langOpen}
                             >
                                 <Globe className="h-4 w-4" />
                                 <span className="hidden sm:inline">
-                                    {currentLang.flag} {currentLang.label}
+                                    {currentLang.code.toUpperCase()}
                                 </span>
                                 <ChevronDown
                                     className={cx(
@@ -186,7 +194,7 @@ export default function Navbar() {
                                     ref={langMenuRef}
                                     role="menu"
                                     aria-label="Language menu"
-                                    className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-surface-200 py-1 z-20"
+                                    className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-32 bg-card rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 py-1 z-20"
                                 >
                                     {LANGUAGES.map((lang) => {
                                         const selected = i18n.language === lang.code;
@@ -199,8 +207,8 @@ export default function Navbar() {
                                                 className={cx(
                                                     "w-full text-left rtl:text-right px-4 py-2 text-sm transition-colors flex items-center gap-2",
                                                     selected
-                                                        ? "bg-primary-50 text-primary-700 font-medium"
-                                                        : "text-surface-700 hover:bg-surface-50"
+                                                        ? "bg-primary-500/10 text-highlight font-medium"
+                                                        : "text-surface-700 hover:bg-white/5 hover:text-white"
                                                 )}
                                             >
                                                 <span aria-hidden="true">{lang.flag}</span>
@@ -214,10 +222,10 @@ export default function Navbar() {
 
                         {/* Admin actions */}
                         {adminUser ? (
-                            <div className="hidden sm:flex items-center gap-2">
+                            <div className="hidden sm:flex items-center gap-3">
                                 <Link
                                     to="/admin"
-                                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-accent-50 text-accent-700 hover:bg-accent-100 transition-colors"
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-primary-500/10 text-primary-300 hover:bg-primary-500/20 hover:text-white border border-primary-500/30 transition-colors"
                                 >
                                     <Shield className="h-4 w-4" />
                                     {t("nav.admin")}
@@ -225,7 +233,7 @@ export default function Navbar() {
                                 <button
                                     type="button"
                                     onClick={logoutAdmin}
-                                    className="px-3 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-100 transition-colors"
+                                    className="px-3 py-2 rounded-lg text-sm font-medium text-surface-700 hover:text-danger-400 hover:bg-danger-500/10 transition-colors"
                                 >
                                     {t("nav.logout")}
                                 </button>
@@ -233,17 +241,17 @@ export default function Navbar() {
                         ) : (
                             <Link
                                 to="/admin"
-                                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-100 transition-colors"
-                                aria-label={t("nav.admin")}
+                                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border border-white/10 text-white hover:border-highlight hover:text-highlight transition-all duration-300"
                             >
                                 <Shield className="h-4 w-4" />
+                                <span className="hidden sm:inline">Admin</span>
                             </Link>
                         )}
 
                         {/* Mobile Toggle */}
                         <button
                             type="button"
-                            className="lg:hidden p-2 rounded-lg hover:bg-surface-100 text-surface-600"
+                            className="lg:hidden p-2 rounded-lg hover:bg-white/10 text-white"
                             onClick={() => setMobileOpen((v) => !v)}
                             aria-label="Toggle menu"
                             aria-expanded={mobileOpen}
@@ -259,7 +267,7 @@ export default function Navbar() {
             {mobileOpen && (
                 <nav
                     id="mobile-nav"
-                    className="lg:hidden border-t border-surface-200 bg-white/95 backdrop-blur-lg"
+                    className="lg:hidden glass-panel absolute w-full"
                     aria-label="Mobile navigation"
                 >
                     <div className="max-w-7xl mx-auto px-4 py-3 space-y-1">
@@ -270,10 +278,10 @@ export default function Navbar() {
                                     key={link.path}
                                     to={link.path}
                                     className={cx(
-                                        "block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                        "block px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                                         active
-                                            ? "bg-primary-50 text-primary-700"
-                                            : "text-surface-600 hover:bg-surface-100"
+                                            ? "bg-primary-500/20 text-highlight border border-primary-500/30"
+                                            : "text-surface-700 hover:bg-white/5 hover:text-white"
                                     )}
                                 >
                                     {link.label}
@@ -283,7 +291,7 @@ export default function Navbar() {
 
                         <Link
                             to="/admin"
-                            className="block px-4 py-2.5 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-100 transition-colors"
+                            className="block px-4 py-3 rounded-lg text-sm font-medium text-surface-700 hover:bg-white/5 hover:text-white transition-colors"
                         >
                             {t("nav.admin")}
                         </Link>
@@ -292,7 +300,7 @@ export default function Navbar() {
                             <button
                                 type="button"
                                 onClick={logoutAdmin}
-                                className="block w-full text-left rtl:text-right px-4 py-2.5 rounded-lg text-sm font-medium text-danger-500 hover:bg-surface-100 transition-colors"
+                                className="block w-full text-left rtl:text-right px-4 py-3 rounded-lg text-sm font-medium text-danger-400 hover:bg-danger-500/10 transition-colors"
                             >
                                 {t("nav.logout")}
                             </button>

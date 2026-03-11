@@ -8,7 +8,7 @@
         "mySubmissions": "Mes soumissions",
         "faq": "FAQ",
         "contact": "Contact",
-        "pastEvents": "Événements réalisés",
+        "pastEvents": "Moments d'Impact",
         "admin": "Administration",
         "login": "Connexion",
         "logout": "Déconnexion"
@@ -313,7 +313,7 @@
         "rights": "© 2026 Incubateur CMC BMK. Tous droits réservés."
     },
     "pastEvents": {
-        "title": "Événements réalisés",
+        "title": "Moments d'Impact",
         "subtitle": "Découvrez les moments forts de nos activités passées",
         "viewGallery": "Voir la galerie",
         "backToList": "Retour aux événements réalisés"

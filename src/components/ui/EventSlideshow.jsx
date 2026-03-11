@@ -53,12 +53,12 @@ export default function EventSlideshow() {
                 {slides.map((slide, index) => (
                     <div
                         key={index}
-                        className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-                            index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                        className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out ${
+                            index === currentSlide ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'
                         }`}
                     >
                         <div
-                            className="absolute inset-0 bg-cover bg-center"
+                            className="absolute inset-0 bg-cover bg-center transition-transform duration-[10s] ease-linear scale-110 object-cover"
                             style={{ 
                                 backgroundImage: `url('${slide.image}')`,
                                 // Note: background-image doesn't support native loading="lazy", 
@@ -69,27 +69,28 @@ export default function EventSlideshow() {
                             aria-label={slide.title}
                         />
                         {/* Dark overlay gradient */}
-                        <div className="absolute inset-0 slide-overlay" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-bg-primary via-bg-primary/80 to-transparent slide-overlay" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-transparent to-transparent" />
 
-                        <div className="relative z-20 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center text-center">
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 text-white leading-tight slide-title fade-in-up">
+                        <div className="relative z-20 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-start text-left">
+                            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold mb-6 text-white leading-tight slide-title fade-in-up md:w-3/4">
                                 {slide.title}
                             </h1>
-                            <p className="text-xl sm:text-2xl text-white/90 mb-8 max-w-2xl slide-description fade-in-up delay-100">
+                            <p className="text-xl sm:text-2xl text-surface-300 mb-10 max-w-2xl slide-description fade-in-up delay-100">
                                 {slide.description}
                             </p>
 
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center slide-actions fade-in-up delay-200">
+                            <div className="flex flex-col sm:flex-row gap-5 slide-actions fade-in-up delay-200">
                                 <Link to="/opportunities">
-                                    <Button size="lg" className="border-white text-white hover:bg-white/20 w-full sm:w-auto hero-btn-primary">
+                                    <button className="modern-btn modern-btn-primary w-full sm:w-auto text-lg px-8 py-4 hero-btn-primary">
                                         {t('home.heroCta')}
                                         <ArrowRight className={`h-5 w-5 ${isRTL ? 'rotate-180 mr-2' : 'ml-2'}`} />
-                                    </Button>
+                                    </button>
                                 </Link>
                                 <Link to="/submit">
-                                    <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/20 w-full sm:w-auto">
+                                    <button className="modern-btn w-full sm:w-auto text-lg px-8 py-4">
                                         {t('home.heroCtaSecondary')}
-                                    </Button>
+                                    </button>
                                 </Link>
                             </div>
                         </div>
@@ -97,31 +98,37 @@ export default function EventSlideshow() {
                 ))}
             </div>
 
-            {/* Navigation Arrows */}
-            <button
-                className="absolute top-1/2 left-4 -translate-y-1/2 z-30 p-2 text-white/80 hover:text-white hover:bg-black/40 bg-black/20 rounded-full transition-all nav-btn"
-                onClick={isRTL ? nextSlide : prevSlide}
-                aria-label="Previous Slide"
-            >
-                <ChevronLeft className="h-8 w-8" />
-            </button>
+            {/* Glowing accents for the slider */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-500/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen z-10" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-highlight/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen z-10" />
 
-            <button
-                className="absolute top-1/2 right-4 -translate-y-1/2 z-30 p-2 text-white/80 hover:text-white hover:bg-black/40 bg-black/20 rounded-full transition-all nav-btn"
-                onClick={isRTL ? prevSlide : nextSlide}
-                aria-label="Next Slide"
-            >
-                <ChevronRight className="h-8 w-8" />
-            </button>
+            {/* Navigation Arrows */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 absolute inset-0 pointer-events-none flex items-center justify-between z-30">
+                <button
+                    className="pointer-events-auto p-4 text-surface-400 hover:text-white bg-bg-primary/50 hover:bg-bg-primary border border-white/5 hover:border-primary-500 rounded-2xl transition-all shadow-lg hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] backdrop-blur-md nav-btn"
+                    onClick={isRTL ? nextSlide : prevSlide}
+                    aria-label="Previous Slide"
+                >
+                    <ChevronLeft className="h-6 w-6" />
+                </button>
+
+                <button
+                    className="pointer-events-auto p-4 text-surface-400 hover:text-white bg-bg-primary/50 hover:bg-bg-primary border border-white/5 hover:border-primary-500 rounded-2xl transition-all shadow-lg hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] backdrop-blur-md nav-btn"
+                    onClick={isRTL ? prevSlide : nextSlide}
+                    aria-label="Next Slide"
+                >
+                    <ChevronRight className="h-6 w-6" />
+                </button>
+            </div>
 
             {/* Dots Indicator */}
-            <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center gap-2">
+            <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center gap-3">
                 {slides.map((_, index) => (
                     <button
                         key={index}
                         onClick={() => goToSlide(index)}
-                        className={`h-2 rounded-full transition-all ${
-                            index === currentSlide ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80 w-2'
+                        className={`transition-all duration-300 rounded-full ${
+                            index === currentSlide ? 'bg-primary-500 w-10 h-2 shadow-[0_0_10px_rgba(79,70,229,0.5)]' : 'bg-surface-600 hover:bg-surface-400 w-2 h-2'
                         }`}
                         aria-label={`Go to slide ${index + 1}`}
                     />

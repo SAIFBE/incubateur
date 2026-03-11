@@ -33,6 +33,13 @@ export default function EventCard({ event }) {
                 {description}
             </p>
 
+            {event.impactSummary && (
+                <div className="mt-4 mb-2 p-4 bg-primary-50 rounded-lg border border-primary-100 text-left">
+                    <h4 className="font-semibold text-primary-800 text-sm mb-1 uppercase tracking-wider">Impact</h4>
+                    <p className="text-sm text-primary-900 leading-relaxed font-medium">{event.impactSummary}</p>
+                </div>
+            )}
+
             <EventGallery images={event.images} />
         </div>
     );

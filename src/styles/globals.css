@@ -1,0 +1,79 @@
+@import './variables.css';
+
+/* Global resets specifically for the dashboard module */
+.dashboard-root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dashboard-root *,
+.dashboard-root *::before,
+.dashboard-root *::after {
+  box-sizing: inherit;
+}
+
+/* Scrollbar */
+.dashboard-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dashboard-root ::-webkit-scrollbar-track {
+  background: var(--color-bg-deep);
+}
+.dashboard-root ::-webkit-scrollbar-thumb {
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-full);
+}
+.dashboard-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Typography utils */
+.text-h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
+.text-h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.025em; line-height: 1.3; }
+.text-h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+.text-body { font-size: 1rem; line-height: 1.5; color: var(--color-text-secondary); }
+.text-sm { font-size: 0.875rem; line-height: 1.4; color: var(--color-text-secondary); }
+.text-xs { font-size: 0.75rem; line-height: 1.4; color: var(--color-text-tertiary); }
+
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-secondary); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+.text-info { color: var(--color-info); }
+
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.mt-2 { margin-top: var(--spacing-xs); }
+.mt-4 { margin-top: var(--spacing-sm); }
+.mt-6 { margin-top: var(--spacing-md); }
+.mt-8 { margin-top: var(--spacing-lg); }
+.mb-2 { margin-bottom: var(--spacing-xs); }
+.mb-4 { margin-bottom: var(--spacing-sm); }
+.mb-6 { margin-bottom: var(--spacing-md); }
+.mb-8 { margin-bottom: var(--spacing-lg); }

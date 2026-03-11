@@ -12,8 +12,8 @@ export default function PastEventsPage() {
         <div className="fade-in">
             <div className="hero-gradient text-white py-16 text-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('pastEvents.title')}</h1>
-                    <p className="text-white/80 text-lg">{t('pastEvents.subtitle')}</p>
+                    <h1 className="text-3xl sm:text-4xl font-bold mb-3">Moments d'Impact</h1>
+                    <p className="text-white/80 text-lg">Revivez nos événements phares, success stories et célébrations de l'innovation.</p>
                 </div>
             </div>
 

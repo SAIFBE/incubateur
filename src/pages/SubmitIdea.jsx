@@ -136,28 +136,34 @@ export default function SubmitIdea() {
 
     if (submitted) {
         return (
-            <div className="fade-in">
-                <div className="hero-gradient text-white py-16 text-center">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <h1 className="text-3xl sm:text-4xl font-bold">{t('submit.success.title')}</h1>
+            <div className="fade-in pb-20">
+                <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-dots opacity-30"></div>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('submit.success.title')}</h1>
                     </div>
                 </div>
                 <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-                    <CheckCircle className="h-20 w-20 text-success-500 mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold text-surface-900 mb-3">{t('submit.success.title')}</h2>
-                    <p className="text-surface-500 mb-8">{t('submit.success.message')}</p>
-                    <div className="bg-primary-50 rounded-2xl p-6 mb-8">
-                        <div className="text-sm text-primary-600 mb-1">{t('submit.success.refCode')}</div>
-                        <div className="text-3xl font-bold text-primary-700 font-mono">{refCode}</div>
-                        <div className="text-xs text-primary-500 mt-2">{t('submit.success.refCodeDesc')}</div>
+                    <div className="w-24 h-24 bg-success-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+                        <CheckCircle className="h-12 w-12 text-success-500" />
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <h2 className="text-3xl font-bold text-white mb-4">{t('submit.success.title')}</h2>
+                    <p className="text-surface-400 mb-10 text-lg">{t('submit.success.message')}</p>
+                    <div className="bg-bg-card border border-white/5 rounded-2xl p-8 mb-10 shadow-lg relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 blur-3xl rounded-full"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-highlight/10 blur-3xl rounded-full"></div>
+                        
+                        <div className="text-sm text-surface-400 mb-2 relative z-10 uppercase tracking-widest">{t('submit.success.refCode')}</div>
+                        <div className="text-4xl font-bold text-highlight font-mono tracking-wider relative z-10">{refCode}</div>
+                        <div className="text-sm text-surface-500 mt-4 relative z-10">{t('submit.success.refCodeDesc')}</div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link to="/my-submissions">
-                            <Button>{t('submit.success.viewSubmissions')}</Button>
+                            <button className="modern-btn modern-btn-primary w-full sm:w-auto">{t('submit.success.viewSubmissions')}</button>
                         </Link>
-                        <Button variant="secondary" onClick={() => { setSubmitted(false); setStep(0); }}>
+                        <button className="modern-btn w-full sm:w-auto" onClick={() => { setSubmitted(false); setStep(0); }}>
                             {t('submit.success.submitAnother')}
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -165,11 +171,12 @@ export default function SubmitIdea() {
     }
 
     return (
-        <div className="fade-in">
-            <div className="hero-gradient text-white py-16 text-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('submit.title')}</h1>
-                    <p className="text-white/80 text-lg">{t('submit.subtitle')}</p>
+        <div className="fade-in pb-20">
+            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-dots opacity-30"></div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('submit.title')}</h1>
+                    <p className="text-surface-400 text-lg max-w-2xl mx-auto">{t('submit.subtitle')}</p>
                 </div>
             </div>
 
@@ -180,93 +187,107 @@ export default function SubmitIdea() {
                 ]} />
 
                 {/* Stepper */}
-                <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center justify-between mb-12 relative z-10">
                     {steps.map((label, i) => (
                         <div key={i} className="flex items-center flex-1">
-                            <div className="flex flex-col items-center flex-shrink-0">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i < step ? 'bg-success-500 text-white' :
-                                        i === step ? 'bg-primary-600 text-white ring-4 ring-primary-200' :
-                                            'bg-surface-200 text-surface-500'
-                                    }`}>
+                            <div className="flex flex-col items-center flex-shrink-0 relative">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg ${
+                                    i < step ? 'bg-success-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]' :
+                                    i === step ? 'bg-primary-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)] ring-4 ring-primary-500/30' :
+                                    'bg-surface-800 text-surface-500 border border-white/5'
+                                }`}>
                                     {i < step ? '✓' : i + 1}
                                 </div>
-                                <span className="text-xs text-surface-500 mt-2 text-center hidden sm:block max-w-[80px]">
+                                <span className={`text-xs mt-3 text-center hidden sm:block max-w-[90px] font-medium transition-colors ${i <= step ? 'text-white' : 'text-surface-500'}`}>
                                     {label}
                                 </span>
                             </div>
                             {i < steps.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-2 ${i < step ? 'bg-success-500' : 'bg-surface-200'}`} />
+                                <div className="flex-1 px-4">
+                                    <div className={`h-1 w-full rounded-full transition-colors duration-500 ${i < step ? 'bg-success-500/50 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-surface-800'}`} />
+                                </div>
                             )}
                         </div>
                     ))}
                 </div>
 
-                <Card hover={false} className="p-6 md:p-10 shadow-lg">
+                <div className="card-modern md:p-10">
                     <form onSubmit={handleSubmit(onSubmit)}>
                         {/* Step 1: Basic Info */}
                         {step === 0 && (
-                            <div className="space-y-5">
-                                <h3 className="text-lg font-bold text-surface-900 mb-4">{t('submit.step1')}</h3>
-                                <div className="grid sm:grid-cols-2 gap-5">
-                                    <Input label={t('submit.name')} {...register('name')} error={errors.name?.message && t('submit.validation.required')} />
-                                    <Input label={t('submit.email')} type="email" {...register('email')} error={errors.email?.message && t('submit.validation.email')} />
+                            <div className="space-y-6 fade-in">
+                                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                                    <span className="text-primary-400">01.</span> {t('submit.step1')}
+                                </h3>
+                                <div className="grid sm:grid-cols-2 gap-6">
+                                    <Input label={t('submit.name')} className="modern-input" {...register('name')} error={errors.name?.message && t('submit.validation.required')} />
+                                    <Input label={t('submit.email')} type="email" className="modern-input" {...register('email')} error={errors.email?.message && t('submit.validation.email')} />
                                 </div>
-                                <Input label={t('submit.phone')} {...register('phone')} />
-                                <Input label={t('submit.ideaTitle')} {...register('ideaTitle')} error={errors.ideaTitle?.message && t('submit.validation.required')} />
-                                <Select
-                                    label={t('submit.domain')}
-                                    options={domainOptions}
-                                    placeholder={`-- ${t('submit.domain')} --`}
-                                    {...register('domain')}
-                                    error={errors.domain?.message && t('submit.validation.required')}
-                                />
+                                <Input label={t('submit.phone')} className="modern-input" {...register('phone')} />
+                                <Input label={t('submit.ideaTitle')} className="modern-input" {...register('ideaTitle')} error={errors.ideaTitle?.message && t('submit.validation.required')} />
+                                <div className="form-group">
+                                    <label className="form-label">{t('submit.domain')}</label>
+                                    <select 
+                                        className="modern-input" 
+                                        {...register('domain')}
+                                    >
+                                        <option value="">-- {t('submit.domain')} --</option>
+                                        {domainOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    </select>
+                                    {errors.domain?.message && <div className="form-error">{t('submit.validation.required')}</div>}
+                                </div>
                             </div>
                         )}
 
                         {/* Step 2: Problem & Solution */}
                         {step === 1 && (
-                            <div className="space-y-5">
-                                <h3 className="text-lg font-bold text-surface-900 mb-4">{t('submit.step2')}</h3>
-                                <Input label={t('submit.problem')} type="textarea" placeholder={t('submit.problemPlaceholder')} {...register('problem')} error={errors.problem?.message && t('submit.validation.minLength', { min: 20 })} />
-                                <Input label={t('submit.solution')} type="textarea" placeholder={t('submit.solutionPlaceholder')} {...register('solution')} error={errors.solution?.message && t('submit.validation.minLength', { min: 20 })} />
-                                <Input label={t('submit.market')} type="textarea" placeholder={t('submit.marketPlaceholder')} {...register('market')} error={errors.market?.message && t('submit.validation.minLength', { min: 10 })} />
+                            <div className="space-y-6 fade-in">
+                                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                                    <span className="text-primary-400">02.</span> {t('submit.step2')}
+                                </h3>
+                                <Input label={t('submit.problem')} type="textarea" className="modern-input min-h-[120px]" placeholder={t('submit.problemPlaceholder')} {...register('problem')} error={errors.problem?.message && t('submit.validation.minLength', { min: 20 })} />
+                                <Input label={t('submit.solution')} type="textarea" className="modern-input min-h-[120px]" placeholder={t('submit.solutionPlaceholder')} {...register('solution')} error={errors.solution?.message && t('submit.validation.minLength', { min: 20 })} />
+                                <Input label={t('submit.market')} type="textarea" className="modern-input min-h-[120px]" placeholder={t('submit.marketPlaceholder')} {...register('market')} error={errors.market?.message && t('submit.validation.minLength', { min: 10 })} />
                             </div>
                         )}
 
                         {/* Step 3: Team & Needs */}
                         {step === 2 && (
-                            <div className="space-y-5">
-                                <h3 className="text-lg font-bold text-surface-900 mb-4">{t('submit.step3')}</h3>
-                                <div>
-                                    <label className="block text-sm font-medium text-surface-700 mb-3">{t('submit.teamMembers')}</label>
+                            <div className="space-y-6 fade-in">
+                                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                                    <span className="text-primary-400">03.</span> {t('submit.step3')}
+                                </h3>
+                                <div className="bg-surface-800/30 rounded-xl p-6 border border-white/5">
+                                    <label className="block text-sm font-medium text-surface-300 mb-4">{t('submit.teamMembers')}</label>
                                     {teamMembers.map((member, i) => (
-                                        <div key={i} className="flex gap-3 mb-3 items-start">
+                                        <div key={i} className="flex gap-4 mb-4 items-start">
                                             <Input
                                                 placeholder={t('submit.teamMemberName')}
                                                 value={member.name}
                                                 onChange={(e) => updateTeamMember(i, 'name', e.target.value)}
-                                                className="flex-1"
+                                                className="modern-input flex-1"
                                             />
                                             <Input
                                                 placeholder={t('submit.teamMemberRole')}
                                                 value={member.role}
                                                 onChange={(e) => updateTeamMember(i, 'role', e.target.value)}
-                                                className="flex-1"
+                                                className="modern-input flex-1"
                                             />
                                             {teamMembers.length > 1 && (
-                                                <Button type="button" variant="ghost" onClick={() => removeTeamMember(i)} className="mt-0.5 text-danger-500">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                <button type="button" onClick={() => removeTeamMember(i)} className="p-3 bg-danger-500/10 text-danger-400 hover:bg-danger-500 hover:text-white rounded-lg transition-colors mt-0.5 border border-danger-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                                                    <Trash2 className="h-5 w-5" />
+                                                </button>
                                             )}
                                         </div>
                                     ))}
-                                    <Button type="button" variant="ghost" icon={Plus} onClick={addTeamMember} size="sm">
-                                        {t('submit.addMember')}
-                                    </Button>
+                                    <button type="button" onClick={addTeamMember} className="modern-btn mt-2 text-sm">
+                                        <Plus className="h-4 w-4" /> {t('submit.addMember')}
+                                    </button>
                                 </div>
                                 <Input
                                     label={t('submit.needs')}
                                     type="textarea"
+                                    className="modern-input min-h-[100px]"
                                     placeholder={t('submit.needsPlaceholder')}
                                     value={needs}
                                     onChange={(e) => setNeeds(e.target.value)}
@@ -276,17 +297,21 @@ export default function SubmitIdea() {
 
                         {/* Step 4: Attachments */}
                         {step === 3 && (
-                            <div className="space-y-5">
-                                <h3 className="text-lg font-bold text-surface-900 mb-4">{t('submit.step4')}</h3>
-                                <p className="text-sm text-surface-500">{t('submit.attachmentsDesc')}</p>
+                            <div className="space-y-6 fade-in">
+                                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                                    <span className="text-primary-400">04.</span> {t('submit.step4')}
+                                </h3>
+                                <p className="text-sm text-surface-400 bg-surface-800/50 p-4 rounded-xl border border-white/5">{t('submit.attachmentsDesc')}</p>
 
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-surface-300 rounded-2xl p-8 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-all"
+                                    className="border-2 border-dashed border-white/10 rounded-2xl p-10 text-center cursor-pointer hover:border-highlight hover:bg-highlight/5 transition-all duration-300 group"
                                 >
-                                    <Upload className="h-10 w-10 text-surface-400 mx-auto mb-3" />
-                                    <p className="text-surface-600 font-medium">{t('submit.dropzone')}</p>
-                                    <p className="text-surface-400 text-sm mt-1">{t('submit.maxSize')}</p>
+                                    <div className="w-16 h-16 bg-surface-800 group-hover:bg-highlight/20 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
+                                        <Upload className="h-8 w-8 text-surface-400 group-hover:text-highlight transition-colors" />
+                                    </div>
+                                    <p className="text-white font-medium mb-1">{t('submit.dropzone')}</p>
+                                    <p className="text-surface-500 text-sm">{t('submit.maxSize')}</p>
                                 </div>
                                 <input
                                     ref={fileInputRef}
@@ -299,23 +324,25 @@ export default function SubmitIdea() {
                                 />
 
                                 {attachments.length > 0 && (
-                                    <div className="space-y-2">
+                                    <div className="space-y-3 mt-6">
                                         {attachments.map((file, i) => (
-                                            <div key={i} className="flex items-center justify-between bg-surface-50 rounded-xl p-3">
-                                                <div className="flex items-center gap-3">
-                                                    {file.type === 'application/pdf' ? (
-                                                        <FileText className="h-5 w-5 text-danger-500" />
-                                                    ) : (
-                                                        <Image className="h-5 w-5 text-primary-500" />
-                                                    )}
+                                            <div key={i} className="flex items-center justify-between bg-surface-800 rounded-xl p-4 border border-white/5 shadow-sm">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-lg bg-surface-900 flex items-center justify-center shadow-inner">
+                                                        {file.type === 'application/pdf' ? (
+                                                            <FileText className="h-5 w-5 text-danger-400" />
+                                                        ) : (
+                                                            <Image className="h-5 w-5 text-highlight" />
+                                                        )}
+                                                    </div>
                                                     <div>
-                                                        <div className="text-sm font-medium text-surface-700 truncate max-w-[200px]">{file.name}</div>
-                                                        <div className="text-xs text-surface-400">{formatSize(file.size)}</div>
+                                                        <div className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-xs">{file.name}</div>
+                                                        <div className="text-xs text-surface-500 mt-0.5">{formatSize(file.size)}</div>
                                                     </div>
                                                 </div>
-                                                <Button type="button" variant="ghost" size="sm" onClick={() => removeFile(i)} className="text-danger-500">
+                                                <button type="button" onClick={() => removeFile(i)} className="w-8 h-8 rounded-full bg-danger-500/10 text-danger-400 hover:bg-danger-500 hover:text-white flex items-center justify-center transition-colors">
                                                     <X className="h-4 w-4" />
-                                                </Button>
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
@@ -324,22 +351,32 @@ export default function SubmitIdea() {
                         )}
 
                         {/* Navigation */}
-                        <div className="flex justify-between mt-8 pt-6 border-t border-surface-200">
-                            <Button type="button" variant="secondary" onClick={prevStep} disabled={step === 0}>
+                        <div className="flex justify-between mt-10 pt-8 border-t border-white/10">
+                            <button type="button" className="modern-btn" onClick={prevStep} disabled={step === 0} style={{ opacity: step === 0 ? 0 : 1, visibility: step === 0 ? 'hidden' : 'visible' }}>
                                 {t('submit.previous')}
-                            </Button>
+                            </button>
                             {step < 3 ? (
-                                <Button type="button" onClick={nextStep}>
-                                    {t('submit.next')}
-                                </Button>
+                                <button type="button" className="modern-btn modern-btn-primary" onClick={nextStep}>
+                                    {t('submit.next')} ➔
+                                </button>
                             ) : (
-                                <Button type="submit" variant="accent" loading={submitting}>
-                                    {submitting ? t('submit.submitting') : t('submit.submitBtn')}
-                                </Button>
+                                <button type="submit" className="modern-btn modern-btn-primary" disabled={submitting}>
+                                    {submitting ? (
+                                        <span className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            {t('submit.submitting')}
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-2">
+                                            <Upload className="w-4 h-4" />
+                                            {t('submit.submitBtn')}
+                                        </span>
+                                    )}
+                                </button>
                             )}
                         </div>
                     </form>
-                </Card>
+                </div>
             </div>
         </div>
     );

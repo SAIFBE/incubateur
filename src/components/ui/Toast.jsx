@@ -1,62 +1,142 @@
-import { useUI } from '../../contexts/UIContext';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
-const icons = {
-    success: CheckCircle,
-    error: AlertCircle,
-    warning: AlertTriangle,
-    info: Info,
+const ToastContext = createContext(null);
+
+export const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = useCallback(({ title, message, type = 'success', duration = 3000 }) => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, title, message, type }]);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
+  }, []);
+
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  return (
+    <ToastContext.Provider value={{ showToast }}>
+      {children}
+      {createPortal(
+        <div className="toast-container">
+          {toasts.map(toast => (
+            <div key={toast.id} className={`toast-message toast-${toast.type} animate-fade-in`}>
+              <div className="toast-icon">
+                {toast.type === 'success' && '✓'}
+                {toast.type === 'error' && '✕'}
+                {toast.type === 'info' && 'i'}
+              </div>
+              <div className="toast-content">
+                {toast.title && <h4 className="toast-title">{toast.title}</h4>}
+                {toast.message && <p className="toast-desc">{toast.message}</p>}
+              </div>
+              <button 
+                className="toast-close" 
+                onClick={() => removeToast(toast.id)}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
+      
+      <style>{`
+        .toast-container {
+          position: fixed;
+          bottom: var(--spacing-lg);
+          right: var(--spacing-lg);
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-sm);
+          pointer-events: none;
+        }
+        
+        .toast-message {
+          display: flex;
+          align-items: flex-start;
+          gap: var(--spacing-sm);
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-left: 4px solid var(--color-primary);
+          padding: var(--spacing-md);
+          border-radius: var(--radius-md);
+          box-shadow: var(--shadow-lg);
+          width: 320px;
+          pointer-events: auto;
+          backdrop-filter: blur(10px);
+        }
+        
+        .toast-success { border-left-color: var(--color-success); }
+        .toast-error { border-left-color: var(--color-danger); }
+        .toast-info { border-left-color: var(--color-info); }
+        
+        .toast-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          font-weight: bold;
+          font-size: 0.75rem;
+          color: white;
+          flex-shrink: 0;
+        }
+        
+        .toast-success .toast-icon { background: var(--color-success); }
+        .toast-error .toast-icon { background: var(--color-danger); }
+        .toast-info .toast-icon { background: var(--color-info); }
+        
+        .toast-content {
+          flex: 1;
+        }
+        
+        .toast-title {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--color-text-primary);
+          margin: 0 0 2px 0;
+        }
+        
+        .toast-desc {
+          font-size: 0.8rem;
+          color: var(--color-text-secondary);
+          margin: 0;
+        }
+        
+        .toast-close {
+          background: transparent;
+          border: none;
+          color: var(--color-text-tertiary);
+          cursor: pointer;
+          font-size: 0.875rem;
+          padding: 4px;
+          border-radius: var(--radius-sm);
+        }
+        
+        .toast-close:hover {
+          background: var(--color-surface-hover);
+          color: var(--color-text-primary);
+        }
+      `}</style>
+    </ToastContext.Provider>
+  );
 };
 
-const colors = {
-    success: 'border-success-500 bg-success-50',
-    error: 'border-danger-500 bg-danger-50',
-    warning: 'border-warning-500 bg-warning-50',
-    info: 'border-primary-500 bg-primary-50',
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
 };
-
-const iconColors = {
-    success: 'text-success-500',
-    error: 'text-danger-500',
-    warning: 'text-warning-500',
-    info: 'text-primary-500',
-};
-
-export default function ToastContainer() {
-    const { toasts, removeToast } = useUI();
-
-    return (
-        <div className="fixed top-4 right-4 z-[100] flex flex-col gap-3 max-w-sm w-full" aria-live="polite">
-            {toasts.map((toast) => {
-                const Icon = icons[toast.type] || icons.info;
-                return (
-                    <div
-                        key={toast.id}
-                        className={`
-              toast-enter flex items-start gap-3 p-4 rounded-xl border-l-4 shadow-lg
-              ${colors[toast.type] || colors.info}
-            `}
-                        role="alert"
-                    >
-                        <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${iconColors[toast.type] || iconColors.info}`} />
-                        <div className="flex-1 min-w-0">
-                            {toast.title && (
-                                <p className="font-semibold text-surface-900 text-sm">{toast.title}</p>
-                            )}
-                            {toast.message && (
-                                <p className="text-surface-600 text-sm mt-0.5">{toast.message}</p>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => removeToast(toast.id)}
-                            className="p-1 rounded-lg hover:bg-black/5 text-surface-400 flex-shrink-0"
-                            aria-label="Dismiss"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}

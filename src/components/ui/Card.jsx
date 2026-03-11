@@ -1,41 +1,34 @@
-function cx(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+import React from 'react';
 
-export default function Card({
-  children,
-  className = "",
-  hover = true,
-  onClick,
-  disabled = false,
-}) {
-  const clickable = typeof onClick === "function" && !disabled;
-
-  const handleKeyDown = (e) => {
-    if (!clickable) return;
-    if (e.key === "Enter") onClick(e);
-    if (e.key === " ") {
-      e.preventDefault(); // avoid page scroll
-      onClick(e);
-    }
-  };
-
+// Using the same Card.jsx that might already exist, but ensuring our structure
+// We will overwrite if it exists to match the dashboard design.
+const Card = ({ children, className = '', ...props }) => {
   return (
-    <div
-      className={cx(
-        "card",
-        hover && "card--hover",
-        clickable && "card--clickable",
-        disabled && "card--disabled",
-        className
-      )}
-      onClick={clickable ? onClick : undefined}
-      onKeyDown={clickable ? handleKeyDown : undefined}
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      aria-disabled={disabled ? "true" : undefined}
-    >
+    <div className={`card ${className}`} {...props}>
       {children}
     </div>
   );
-}
+};
+
+export const CardHeader = ({ children, className = '', title, action }) => {
+  if (title || action) {
+    return (
+      <div className={`card-header ${className}`}>
+        {title && <h3 className="card-title">{title}</h3>}
+        {action && <div>{action}</div>}
+        {children}
+      </div>
+    );
+  }
+  return <div className={`card-header ${className}`}>{children}</div>;
+};
+
+export const CardBody = ({ children, className = '' }) => {
+  return (
+    <div className={`${className}`}>
+      {children}
+    </div>
+  );
+};
+
+export default Card;

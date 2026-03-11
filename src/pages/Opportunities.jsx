@@ -57,11 +57,12 @@ export default function Opportunities() {
     };
 
     return (
-        <div className="fade-in">
-            <div className="hero-gradient text-white py-16 text-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl sm:text-4xl font-bold mb-3">{t('opportunities.title')}</h1>
-                    <p className="text-white/80 text-lg">{t('opportunities.subtitle')}</p>
+        <div className="fade-in pb-20">
+            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-dots opacity-30"></div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('opportunities.title')}</h1>
+                    <p className="text-surface-400 text-lg max-w-2xl mx-auto">{t('opportunities.subtitle')}</p>
                 </div>
             </div>
 
@@ -72,48 +73,48 @@ export default function Opportunities() {
                 ]} />
 
                 {/* Filters */}
-                <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div className="mb-12">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-6 card-modern">
                         <SearchBar
                             value={search}
                             onChange={setSearch}
                             placeholder={t('opportunities.search')}
                             className="flex-1 w-full sm:w-auto"
                         />
-                        <Button
-                            variant="secondary"
-                            icon={Filter}
+                        <button
+                            className="modern-btn sm:hidden flex items-center justify-center gap-2 w-full"
                             onClick={() => setShowFilters(!showFilters)}
-                            className="sm:hidden"
                         >
+                            <Filter className="w-5 h-5" />
                             {t('common.filter')}
-                        </Button>
-                        <div className="hidden sm:flex gap-3">
+                        </button>
+                        <div className="hidden sm:flex gap-4">
                             <Select
                                 options={categoryOptions}
                                 placeholder={t('opportunities.allCategories')}
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="w-48"
+                                className="w-52"
                             />
                             <Select
                                 options={statusOptions}
                                 placeholder={t('opportunities.allStatuses')}
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
-                                className="w-40"
+                                className="w-44"
                             />
                             {hasFilters && (
-                                <Button variant="ghost" icon={X} onClick={resetFilters}>
+                                <button className="modern-btn flex items-center justify-center gap-2" onClick={resetFilters}>
+                                    <X className="w-4 h-4" />
                                     {t('common.reset')}
-                                </Button>
+                                </button>
                             )}
                         </div>
                     </div>
 
                     {/* Mobile filters */}
                     {showFilters && (
-                        <div className="sm:hidden mt-4 p-4 bg-white rounded-2xl border border-surface-200 space-y-3">
+                        <div className="sm:hidden mt-4 p-6 card-modern space-y-4">
                             <Select
                                 options={categoryOptions}
                                 placeholder={t('opportunities.allCategories')}
@@ -129,9 +130,10 @@ export default function Opportunities() {
                                 label={t('opportunities.filterStatus')}
                             />
                             {hasFilters && (
-                                <Button variant="ghost" icon={X} onClick={resetFilters} className="w-full">
+                                <button className="modern-btn modern-btn-primary w-full flex items-center justify-center gap-2" onClick={resetFilters}>
+                                    <X className="w-4 h-4" />
                                     {t('common.reset')}
-                                </Button>
+                                </button>
                             )}
                         </div>
                     )}
@@ -139,58 +141,82 @@ export default function Opportunities() {
 
                 {/* Results */}
                 {loading ? (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                             <div key={i} className="card-modern p-8 animate-pulse">
+                                 <div className="flex gap-2 mb-6">
+                                     <div className="h-6 w-20 bg-surface-700 rounded-md"></div>
+                                     <div className="h-6 w-24 bg-surface-700 rounded-md"></div>
+                                 </div>
+                                 <div className="h-6 bg-surface-700 rounded-md mb-4 w-3/4"></div>
+                                 <div className="h-4 bg-surface-800 rounded-md mb-2 w-full"></div>
+                                 <div className="h-4 bg-surface-800 rounded-md mb-6 w-5/6"></div>
+                                 <div className="flex gap-2 mb-6">
+                                     <div className="h-5 w-16 bg-surface-800 rounded-md"></div>
+                                     <div className="h-5 w-16 bg-surface-800 rounded-md"></div>
+                                 </div>
+                                 <div className="pt-4 border-t border-white/5">
+                                     <div className="h-4 bg-surface-800 rounded-md w-1/2"></div>
+                                 </div>
+                             </div>
+                        ))}
                     </div>
                 ) : filtered.length > 0 ? (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filtered.map(opp => {
                             const isDeadlineSoon = new Date(opp.deadline) - new Date() < 7 * 24 * 60 * 60 * 1000 && opp.status === 'open';
                             return (
-                                <Link key={opp.id} to={`/opportunities/${opp.id}`}>
-                                    <Card className="h-full flex flex-col p-6 md:p-8 shadow-md">
-                                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                <Link key={opp.id} to={`/opportunities/${opp.id}`} className="block group">
+                                    <div className="card-modern h-full flex flex-col p-8 group-hover:border-highlight/50 transition-colors duration-300 relative overflow-hidden">
+                                        
+                                        <div className="flex items-center gap-3 mb-6 flex-wrap relative z-10">
                                             <Badge status={opp.status}>
                                                 {t(`opportunities.${opp.status}`)}
                                             </Badge>
-                                            <Badge color="purple">
+                                            <Badge color="purple" className="bg-primary-500/20 text-primary-300 border border-primary-500/30">
                                                 {t(`opportunities.categories.${opp.category}`)}
                                             </Badge>
                                             {isDeadlineSoon && (
-                                                <Badge color="yellow">{t('opportunities.deadlineSoon')}</Badge>
+                                                <Badge color="yellow" className="bg-warning-500/20 text-warning-400 border border-warning-500/30">
+                                                    {t('opportunities.deadlineSoon')}
+                                                </Badge>
                                             )}
                                         </div>
-                                        <h3 className="font-bold text-surface-900 mb-2 line-clamp-2">
+                                        <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-highlight transition-colors relative z-10">
                                             {opp.title_i18n[lang] || opp.title_i18n.fr}
                                         </h3>
-                                        <p className="text-surface-500 text-sm mb-4 line-clamp-3 flex-1">
+                                        <p className="text-surface-400 text-sm mb-6 line-clamp-3 flex-grow leading-relaxed relative z-10">
                                             {opp.summary_i18n[lang] || opp.summary_i18n.fr}
                                         </p>
-                                        <div className="flex flex-wrap gap-1.5 mb-4">
+                                        <div className="flex flex-wrap gap-2 mb-6 relative z-10">
                                             {opp.tags.map(tag => (
-                                                <Badge key={tag} color="gray" size="xs">#{tag}</Badge>
+                                                <span key={tag} className="text-xs font-medium px-2.5 py-1 rounded-md bg-surface-800 text-surface-300 border border-white/5">#{tag}</span>
                                             ))}
                                         </div>
-                                        <div className="pt-4 border-t border-surface-100 text-sm text-surface-400 flex items-center gap-2">
-                                            <Calendar className="h-4 w-4" />
-                                            {t('opportunities.deadline')}: {new Date(opp.deadline).toLocaleDateString(lang)}
+                                        <div className="pt-4 border-t border-white/5 text-sm font-medium text-surface-400 flex items-center justify-between relative z-10">
+                                            <span className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center border border-white/5">
+                                                    <Calendar className="h-4 w-4 text-primary-400" />
+                                                </div>
+                                                {t('opportunities.deadline')}: {new Date(opp.deadline).toLocaleDateString(lang)}
+                                            </span>
                                         </div>
-                                    </Card>
+                                    </div>
                                 </Link>
                             );
                         })}
                     </div>
                 ) : (
-                    <div className="text-center py-16">
-                        <div className="w-16 h-16 bg-surface-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Filter className="h-8 w-8 text-surface-400" />
+                    <div className="card-modern text-center py-20 flex flex-col items-center justify-center border border-dashed border-white/10 bg-transparent">
+                        <div className="w-20 h-20 rounded-2xl bg-surface-800 flex items-center justify-center mb-6">
+                            <Filter className="h-10 w-10 text-surface-500 relative z-10" />
                         </div>
-                        <h3 className="text-lg font-semibold text-surface-700 mb-2">{t('opportunities.noResults')}</h3>
-                        <p className="text-surface-500">{t('opportunities.noResultsDesc')}</p>
+                        <h3 className="text-xl font-bold text-white mb-3">{t('opportunities.noResults')}</h3>
+                        <p className="text-surface-400 text-lg mb-8 max-w-md mx-auto">{t('opportunities.noResultsDesc')}</p>
                         {hasFilters && (
-                            <Button variant="secondary" className="mt-4" onClick={resetFilters}>
+                            <button className="modern-btn" onClick={resetFilters}>
                                 {t('common.reset')}
-                            </Button>
+                            </button>
                         )}
                     </div>
                 )}

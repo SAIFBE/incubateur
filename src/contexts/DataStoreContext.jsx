@@ -1,15 +1,25 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { mockOpportunities, mockEvents, mockSubmissions } from '../data/mockData';
 import { pastEvents as initialPastEvents } from '../features/events/pastEventsData';
 
 const DataStoreContext = createContext(null);
 
+const loadData = (key, initial) => {
+    try {
+        const stored = localStorage.getItem(`cmc_incubator_${key}`);
+        if (stored) return JSON.parse(stored);
+    } catch (e) {
+        console.error(`Failed to load ${key} from local storage`, e);
+    }
+    return initial;
+};
+
 const initialState = {
-    opportunities: mockOpportunities,
-    events: mockEvents,
-    submissions: mockSubmissions,
-    pastEvents: initialPastEvents,
-    registrations: {},
+    opportunities: loadData('opportunities', mockOpportunities),
+    events: loadData('events', mockEvents),
+    submissions: loadData('datastore_submissions', mockSubmissions),
+    pastEvents: loadData('past_events', initialPastEvents),
+    registrations: loadData('registrations', {}),
     loading: false,
 };
 
@@ -97,6 +107,14 @@ function dataReducer(state, action) {
 
 export function DataStoreProvider({ children }) {
     const [state, dispatch] = useReducer(dataReducer, initialState);
+
+    useEffect(() => {
+        localStorage.setItem('cmc_incubator_opportunities', JSON.stringify(state.opportunities));
+        localStorage.setItem('cmc_incubator_events', JSON.stringify(state.events));
+        localStorage.setItem('cmc_incubator_datastore_submissions', JSON.stringify(state.submissions));
+        localStorage.setItem('cmc_incubator_past_events', JSON.stringify(state.pastEvents));
+        localStorage.setItem('cmc_incubator_registrations', JSON.stringify(state.registrations));
+    }, [state.opportunities, state.events, state.submissions, state.pastEvents, state.registrations]);
 
     const addOpportunity = useCallback((opportunity) => {
         dispatch({ type: 'ADD_OPPORTUNITY', payload: { ...opportunity, id: Date.now().toString() } });
