@@ -1,162 +1,154 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDataStore } from '../../contexts/DataStoreContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../components/ui/Toast';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import Card, { CardBody } from '../../components/ui/Card';
+import AdminImagePicker from '../../components/ui/AdminImagePicker';
+
+const imageItemsFromUrls = (urls = []) => urls.filter(Boolean).map((url, index) => ({
+  id: 'existing-' + index + '-' + url,
+  url,
+  name: 'Photo ' + (index + 1),
+  isExisting: true,
+}));
+
+const filesFromItems = (items) => items.filter((item) => item.file).map((item) => item.file);
+
+
+const initialForm = {
+  title: '',
+  description: '',
+  deadline: '',
+  category: 'funding',
+  status: 'open',
+  link: '',
+  images: [],
+};
 
 const AdminOpportunityFormPage = () => {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const isReadOnlyAdmin = Boolean(currentUser?.isReadOnlyAdmin);
   const { opportunities, addOpportunity, updateOpportunity } = useDataStore();
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    deadline: '',
-    category: 'funding',
-    status: 'open',
-    link: ''
-  });
-
+  const { showToast } = useToast();
+  const [formData, setFormData] = useState(initialForm);
+  const [galleryTouched, setGalleryTouched] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
-    if (isEditing) {
-      const opp = opportunities.find(o => o.id === id);
-      if (opp) {
-        setFormData({
-          title: opp.title_i18n?.fr || opp.title || '',
-          description: opp.summary_i18n?.fr || opp.description || '',
-          deadline: opp.deadline ? opp.deadline.split('T')[0] : '', // simple date input format
-          category: opp.category || 'funding',
-          status: opp.status || 'open',
-          link: opp.link || ''
-        });
-      } else {
-        navigate('/dashboard/admin/opportunities');
-      }
+    if (isReadOnlyAdmin) {
+      navigate('/dashboard/admin/opportunities', { replace: true });
     }
+  }, [isReadOnlyAdmin, navigate]);
+
+  // Compte consultation redirige avant tout chargement de formulaire.
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const opp = opportunities.find((item) => String(item.id) === String(id));
+    if (!opp) {
+      navigate('/dashboard/admin/opportunities');
+      return;
+    }
+
+    setFormData({
+      title: opp.title_i18n?.fr || opp.title || '',
+      description: opp.summary_i18n?.fr || opp.description || '',
+      deadline: opp.deadline ? opp.deadline.split('T')[0] : '',
+      category: opp.category || 'funding',
+      status: opp.status || 'open',
+      link: opp.link || '',
+      images: imageItemsFromUrls(opp.images?.length ? opp.images : opp.image ? [opp.image] : []),
+    });
+    setGalleryTouched(false);
   }, [id, opportunities, isEditing, navigate]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleChange = ({ target }) => {
+    setFormData((current) => ({ ...current, [target.name]: target.value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Construct element compatible with the mockData array structure
+  const handleImagesChange = (items) => {
+    setGalleryTouched(true);
+    setFormData((current) => ({ ...current, images: items }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+
     const oppObj = {
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : '',
+      category: formData.category,
+      status: formData.status,
+      link: formData.link,
+      images: filesFromItems(formData.images),
+      clear_images: galleryTouched,
       title_i18n: { fr: formData.title, ar: formData.title, en: formData.title },
       summary_i18n: { fr: formData.description, ar: formData.description, en: formData.description },
-      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : '',
-      tags: [formData.category], 
+      tags: [formData.category],
     };
 
-    if (isEditing) {
-      updateOpportunity({ ...oppObj, id });
-    } else {
-      oppObj.createdAt = new Date().toISOString();
-      addOpportunity(oppObj);
+    try {
+      if (isEditing) {
+        await updateOpportunity({ ...oppObj, id });
+      } else {
+        await addOpportunity({ ...oppObj, createdAt: new Date().toISOString() });
+      }
+      showToast({ title: 'Succès', message: isEditing ? 'Opportunité modifiée.' : 'Opportunité créée.' });
+      navigate('/dashboard/admin/opportunities');
+    } catch (error) {
+      showToast({ title: 'Erreur', message: error.response?.data?.message || 'Impossible d’enregistrer cette opportunité.', type: 'error' });
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    navigate('/dashboard/admin/opportunities');
   };
 
   return (
-    <div className="pb-12 animate-fade-in max-w-4xl mx-auto">
-      <div className="mb-6 flex items-center gap-4">
-        <button onClick={() => navigate('/dashboard/admin/opportunities')} className="p-2 bg-surface hover:bg-surface-hover rounded-full transition-colors border border-border">
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+    <div className="admin-form-page animate-fade-in">
+      <div className="admin-form-heading">
+        <button onClick={() => navigate('/dashboard/admin/opportunities')} className="admin-back-button" aria-label="Retour">
+          <ArrowLeft size={18} />
         </button>
-        <h1 className="text-2xl font-bold">{isEditing ? 'Modifier l\'opportunité' : 'Créer une nouvelle opportunité'}</h1>
+        <div>
+          <p>Opportunités</p>
+          <h1>{isEditing ? 'Modifier l’opportunité' : 'Créer une nouvelle opportunité'}</h1>
+        </div>
       </div>
 
-      <Card>
+      <Card className="admin-form-card">
         <CardBody className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            
+          <form onSubmit={handleSubmit} className="admin-form-grid">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Titre de l'opportunité"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-              <Input
-                type="date"
-                label="Date limite de candidature"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleChange}
-                required
-              />
+              <Input label="Titre de l’opportunité" name="title" value={formData.title} onChange={handleChange} required />
+              <Input type="date" label="Date limite de candidature" name="deadline" value={formData.deadline} onChange={handleChange} />
             </div>
 
-            <Textarea
-              label="Description complète"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
-              required
-            />
+            <Textarea label="Description complète" name="description" value={formData.description} onChange={handleChange} rows={4} required />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Select
-                label="Catégorie"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                options={[
-                  { value: 'funding', label: 'Financement' },
-                  { value: 'training', label: 'Formation' },
-                  { value: 'mentoring', label: 'Mentorat' },
-                  { value: 'competition', label: 'Compétition' },
-                  { value: 'networking', label: 'Networking' },
-                ]}
-              />
-              <Select
-                label="Statut"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                options={[
-                  { value: 'open', label: 'Ouvert / En cours' },
-                  { value: 'closed', label: 'Fermé / Expiré' },
-                ]}
-              />
+              <Select label="Catégorie" name="category" value={formData.category} onChange={handleChange} options={[{ value: 'funding', label: 'Financement' }, { value: 'training', label: 'Formation' }, { value: 'mentoring', label: 'Mentorat' }, { value: 'competition', label: 'Compétition' }, { value: 'networking', label: 'Networking' }]} />
+              <Select label="Statut" name="status" value={formData.status} onChange={handleChange} options={[{ value: 'open', label: 'Ouvert / En cours' }, { value: 'upcoming', label: 'À venir' }, { value: 'closed', label: 'Fermé / Expiré' }]} />
             </div>
-            
-            <Input
-                type="url"
-                label="Lien d'inscription externe (Optionnel)"
-                name="link"
-                placeholder="https://..."
-                value={formData.link}
-                onChange={handleChange}
-            />
 
-            <div className="flex justify-end gap-3 pt-6 border-t border-border">
-              <button 
-                type="button" 
-                onClick={() => navigate('/dashboard/admin/opportunities')}
-                className="px-6 py-2 bg-surface-200 hover:bg-surface-300 text-surface-800 rounded-lg font-medium transition-colors"
-              >
-                Annuler
-              </button>
-              <button 
-                type="submit" 
-                className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium shadow-sm transition-colors"
-              >
-                {isEditing ? 'Enregistrer les modifications' : 'Créer l\'opportunité'}
+            <Input type="url" label="Lien d’inscription externe" name="link" placeholder="https://..." value={formData.link} onChange={handleChange} />
+
+            <AdminImagePicker label="Photos de l’opportunité" help="Ajoutez des visuels pour illustrer le programme, concours ou appel à projets." value={formData.images} onChange={handleImagesChange} />
+
+            <div className="admin-form-actions">
+              <button type="button" onClick={() => navigate('/dashboard/admin/opportunities')} className="btn btn-secondary">Annuler</button>
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+                <Save size={16} />
+                {isSubmitting ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Créer l’opportunité'}
               </button>
             </div>
-            
           </form>
         </CardBody>
       </Card>

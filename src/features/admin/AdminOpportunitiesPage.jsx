@@ -5,10 +5,13 @@ import Table from '../../components/ui/Table';
 import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
 import Card, { CardBody } from '../../components/ui/Card';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AdminOpportunitiesPage = () => {
   const { opportunities, deleteOpportunity } = useDataStore();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const isReadOnlyAdmin = Boolean(currentUser?.isReadOnlyAdmin);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredOpportunities = opportunities.filter(opp => {
@@ -34,18 +37,22 @@ const AdminOpportunitiesPage = () => {
     )},
     { field: 'actions', header: 'Actions', width: '25%', render: (_, row) => (
       <div className="flex gap-2 justify-end">
-        <button 
-          onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/admin/opportunities/${row.id}/edit`); }}
-          className="px-3 py-1 bg-surface-200 hover:bg-surface-300 text-surface-700 rounded-md text-sm font-medium transition-colors"
-        >
-          Éditer
-        </button>
-        <button 
-          onClick={(e) => handleDelete(row.id, e)}
-          className="px-3 py-1 bg-danger-50 hover:bg-danger-100 text-danger-600 rounded-md text-sm font-medium transition-colors"
-        >
-          Supprimer
-        </button>
+        {!isReadOnlyAdmin ? (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/admin/opportunities/${row.id}/edit`); }}
+              className="admin-inline-action"
+            >
+              Editer
+            </button>
+            <button
+              onClick={(e) => handleDelete(row.id, e)}
+              className="admin-inline-action admin-inline-action--danger"
+            >
+              Supprimer
+            </button>
+          </>
+        ) : <span className="text-tertiary text-sm">Lecture seule</span>}
       </div>
     )},
   ];
@@ -62,13 +69,15 @@ const AdminOpportunitiesPage = () => {
             <p className="page-subtitle mb-0">Programmes, bourses, et concours</p>
           </div>
         </div>
-        <button 
-          onClick={() => navigate('/dashboard/admin/opportunities/new')}
-          className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
-        >
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-          Créer une opportunité
-        </button>
+        {!isReadOnlyAdmin && (
+          <button
+            onClick={() => navigate('/dashboard/admin/opportunities/new')}
+            className="admin-create-action admin-create-action--events"
+          >
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            Creer une opportunite
+          </button>
+        )}
       </div>
 
       <div className="filter-bar mb-6">
@@ -89,7 +98,7 @@ const AdminOpportunitiesPage = () => {
             columns={columns} 
             data={filteredOpportunities} 
             keyField="id"
-            onRowClick={(row) => navigate(`/dashboard/admin/opportunities/${row.id}/edit`)}
+            onRowClick={!isReadOnlyAdmin ? (row) => navigate(`/dashboard/admin/opportunities/${row.id}/edit`) : undefined}
           />
         </CardBody>
       </Card>

@@ -1,0 +1,318 @@
+[data-theme="light"] body {
+  background: #f5f8f6;
+  color: #07120d;
+}
+
+[data-theme="light"] .bg-bg-primary {
+  background-color: #ffffff;
+}
+
+[data-theme="light"] .home-shell,
+[data-theme="light"] .about-shell,
+[data-theme="light"] .opp-landing,
+[data-theme="light"] .events-page,
+[data-theme="light"] .faq-page,
+[data-theme="light"] .impact-page {
+  background: #f5f8f6;
+  color: #07120d;
+}
+
+[data-theme="light"] .home-hero,
+[data-theme="light"] .opp-hero,
+[data-theme="light"] .events-hero,
+[data-theme="light"] .faq-hero,
+[data-theme="light"] .impact-hero,
+[data-theme="light"] .about-hero {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14), transparent 34%),
+    radial-gradient(circle at 78% 35%, rgba(59, 130, 246, 0.12), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f3fbf7 62%, #ecf6f1 100%);
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .about-hero::after {
+  background: linear-gradient(90deg, rgba(255,255,255,0.55), transparent 46%, rgba(255,255,255,0.48));
+}
+
+[data-theme="light"] .contact-hero-gradient {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f3fbf7 55%, #f5f8f6 100%);
+}
+
+[data-theme="light"] .contact-hero-dots {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.09) 1px, transparent 1px);
+}
+
+[data-theme="light"] .home-partners,
+[data-theme="light"] .home-timeline-band,
+[data-theme="light"] .about-advantage-section,
+[data-theme="light"] .about-approach-band {
+  background: #edf6f1;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .home-offer-card,
+[data-theme="light"] .home-program-card,
+[data-theme="light"] .home-testimonial article,
+[data-theme="light"] .home-final-cta,
+[data-theme="light"] .about-mission-grid article,
+[data-theme="light"] .about-responsible-card,
+[data-theme="light"] .about-mini-card,
+[data-theme="light"] .about-phase-grid article,
+[data-theme="light"] .about-stats-grid article,
+[data-theme="light"] .about-final-cta,
+[data-theme="light"] .opp-feature-card,
+[data-theme="light"] .opp-show-card,
+[data-theme="light"] .opp-category-grid article,
+[data-theme="light"] .opp-cta,
+[data-theme="light"] .events-featured,
+[data-theme="light"] .event-card,
+[data-theme="light"] .events-calendar,
+[data-theme="light"] .events-empty,
+[data-theme="light"] .faq-side-card,
+[data-theme="light"] .faq-list article,
+[data-theme="light"] .faq-cta,
+[data-theme="light"] .impact-card,
+[data-theme="light"] .impact-state,
+[data-theme="light"] .contact-form-card,
+[data-theme="light"] .contact-support-card,
+[data-theme="light"] .contact-faq-bar,
+[data-theme="light"] .oppd-stats-bar,
+[data-theme="light"] .oppd-sidebar-card,
+[data-theme="light"] .evd-stats-bar {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .home-product-window,
+[data-theme="light"] .home-product-row,
+[data-theme="light"] .home-program-visual,
+[data-theme="light"] .opp-feature-visual,
+[data-theme="light"] .show-visual,
+[data-theme="light"] .events-featured-visual,
+[data-theme="light"] .impact-media {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(88, 255, 194, 0.2), transparent 25%),
+    linear-gradient(135deg, #eaf8f2, #dfefff);
+  color: #0f9f75;
+}
+
+[data-theme="light"] .home-product-frame,
+[data-theme="light"] .about-story-media,
+[data-theme="light"] .events-toolbar div,
+[data-theme="light"] .events-toolbar label,
+[data-theme="light"] .opp-inline-search {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .home-hero h1,
+[data-theme="light"] .home-section h2,
+[data-theme="light"] .home-timeline-band h2,
+[data-theme="light"] .home-testimonial h2,
+[data-theme="light"] .home-final-cta h2,
+[data-theme="light"] .about-hero h1,
+[data-theme="light"] .about-story-copy h2,
+[data-theme="light"] .about-advantage-section h2,
+[data-theme="light"] .about-approach-band h2,
+[data-theme="light"] .about-team-section h2,
+[data-theme="light"] .about-final-cta h2,
+[data-theme="light"] .about-mission-grid h3,
+[data-theme="light"] .about-mini-card h3,
+[data-theme="light"] .about-phase-grid h3,
+[data-theme="light"] .about-team-grid h3,
+[data-theme="light"] .about-responsible-card h3,
+[data-theme="light"] .opp-hero h1,
+[data-theme="light"] .opp-feature-copy h2,
+[data-theme="light"] .show-body h2,
+[data-theme="light"] .opp-category-section h2,
+[data-theme="light"] .opp-cta h2,
+[data-theme="light"] .events-hero h1,
+[data-theme="light"] .events-featured-copy h2,
+[data-theme="light"] .event-card h2,
+[data-theme="light"] .events-empty h2,
+[data-theme="light"] .events-calendar h2,
+[data-theme="light"] .faq-hero h1,
+[data-theme="light"] .faq-side-card h2,
+[data-theme="light"] .faq-list button,
+[data-theme="light"] .faq-cta h2,
+[data-theme="light"] .impact-hero h1,
+[data-theme="light"] .impact-body h2,
+[data-theme="light"] .contact-hero-title,
+[data-theme="light"] .contact-info-title,
+[data-theme="light"] .contact-detail-value,
+[data-theme="light"] .contact-support-title,
+[data-theme="light"] .contact-success-title,
+[data-theme="light"] .oppd-hero-title,
+[data-theme="light"] .oppd-section-title,
+[data-theme="light"] .oppd-sub-title,
+[data-theme="light"] .oppd-stat-value,
+[data-theme="light"] .oppd-sidebar-detail-value,
+[data-theme="light"] .evd-hero-title,
+[data-theme="light"] .evd-section-title,
+[data-theme="light"] .evd-stat-value {
+  color: #07120d;
+}
+
+[data-theme="light"] .home-hero p,
+[data-theme="light"] .home-section header p,
+[data-theme="light"] .home-offer-card p,
+[data-theme="light"] .home-program-card p,
+[data-theme="light"] .home-testimonial p,
+[data-theme="light"] .home-final-cta p,
+[data-theme="light"] .about-hero p,
+[data-theme="light"] .about-story-copy p,
+[data-theme="light"] .about-mission-grid p,
+[data-theme="light"] .about-responsible-card small,
+[data-theme="light"] .about-mini-card p,
+[data-theme="light"] .about-phase-grid p,
+[data-theme="light"] .about-final-cta p,
+[data-theme="light"] .opp-hero p,
+[data-theme="light"] .opp-feature-copy p,
+[data-theme="light"] .show-body p,
+[data-theme="light"] .opp-cta p,
+[data-theme="light"] .events-hero p,
+[data-theme="light"] .events-featured-copy p,
+[data-theme="light"] .event-card p,
+[data-theme="light"] .faq-hero p,
+[data-theme="light"] .faq-side-card p,
+[data-theme="light"] .faq-answer p,
+[data-theme="light"] .faq-cta p,
+[data-theme="light"] .impact-hero p,
+[data-theme="light"] .impact-body p,
+[data-theme="light"] .impact-state,
+[data-theme="light"] .contact-hero-sub,
+[data-theme="light"] .contact-info-sub,
+[data-theme="light"] .contact-support-desc,
+[data-theme="light"] .contact-faq-text,
+[data-theme="light"] .contact-success-desc,
+[data-theme="light"] .oppd-hero-sub,
+[data-theme="light"] .oppd-about-text,
+[data-theme="light"] .oppd-sidebar-detail-label,
+[data-theme="light"] .evd-hero-sub,
+[data-theme="light"] .evd-about-text,
+[data-theme="light"] .evd-stat-label {
+  color: #475569;
+}
+
+[data-theme="light"] .home-partners p,
+[data-theme="light"] .home-partners div,
+[data-theme="light"] .home-product-tabs,
+[data-theme="light"] .home-product-row small,
+[data-theme="light"] .home-testimonial small,
+[data-theme="light"] .about-stats-grid span,
+[data-theme="light"] .opp-empty-state p,
+[data-theme="light"] .opp-loading-panel,
+[data-theme="light"] .opp-inline-empty p,
+[data-theme="light"] .opp-category-grid small,
+[data-theme="light"] .feature-meta small,
+[data-theme="light"] .events-featured-meta small,
+[data-theme="light"] .event-card-meta,
+[data-theme="light"] .calendar-weekdays span,
+[data-theme="light"] .impact-meta,
+[data-theme="light"] .contact-detail-label {
+  color: #64748b;
+}
+
+[data-theme="light"] .home-outline-btn,
+[data-theme="light"] .opp-hero-actions .secondary,
+[data-theme="light"] .opp-cta .secondary,
+[data-theme="light"] .oppd-btn-outline {
+  color: #07120d;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+[data-theme="light"] .home-primary-btn,
+[data-theme="light"] .home-final-cta a,
+[data-theme="light"] .about-hero-btn,
+[data-theme="light"] .about-final-cta a,
+[data-theme="light"] .opp-hero-actions .primary,
+[data-theme="light"] .opp-cta .primary,
+[data-theme="light"] .events-featured-copy a,
+[data-theme="light"] .faq-cta a,
+[data-theme="light"] .impact-state button,
+[data-theme="light"] .contact-submit-btn {
+  color: #06130e;
+}
+
+[data-theme="light"] .opp-inline-search input,
+[data-theme="light"] .events-toolbar input,
+[data-theme="light"] .contact-input,
+[data-theme="light"] .evd-reg-input {
+  color: #07120d;
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="light"] .opp-inline-search input::placeholder,
+[data-theme="light"] .events-toolbar input::placeholder,
+[data-theme="light"] .contact-input::placeholder,
+[data-theme="light"] .evd-reg-input::placeholder {
+  color: #94a3b8;
+}
+
+[data-theme="light"] .opp-pills button,
+[data-theme="light"] .impact-filter-row button {
+  color: #334155;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .opp-pills button.active,
+[data-theme="light"] .impact-filter-row button.active,
+[data-theme="light"] .events-toolbar button.active {
+  color: #062016;
+  background: #58ffc2;
+}
+
+[data-theme="light"] .events-toolbar button {
+  color: #334155;
+}
+
+[data-theme="light"] .home-hero h1 {
+  color: #ffffff;
+}
+
+[data-theme="light"] .home-hero p {
+  color: #dce8e2;
+}
+
+[data-theme="light"] .events-calendar header,
+[data-theme="light"] .calendar-weekdays span,
+[data-theme="light"] .calendar-grid > div,
+[data-theme="light"] .oppd-sidebar-details,
+[data-theme="light"] .evd-sidebar-details {
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+[data-theme="light"] .calendar-grid strong,
+[data-theme="light"] .home-product-row span,
+[data-theme="light"] .oppd-sidebar-detail-value--sm {
+  color: #07120d;
+}
+
+[data-theme="light"] .contact-cta-glow-1,
+[data-theme="light"] .home-final-cta,
+[data-theme="light"] .about-final-cta,
+[data-theme="light"] .opp-cta,
+[data-theme="light"] .faq-cta {
+  background: linear-gradient(135deg, rgba(211, 245, 230, 0.96), rgba(219, 234, 254, 0.94));
+}
+
+[data-theme="light"] .contact-cta-title,
+[data-theme="light"] .contact-cta-sub {
+  color: #07120d;
+}
+
+[data-theme="light"] .contact-cta-btn {
+  background: #07120d;
+  color: #ffffff;
+}
+
+[data-theme="light"] .brand-logo img {
+  filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.08));
+}
+

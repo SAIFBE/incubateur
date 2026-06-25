@@ -1,11 +1,13 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import BrandLogo from '../ui/BrandLogo';
 
 // --- Premium Inline SVGs for Navigation ---
 const Icons = {
   dashboard: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>,
   folder: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>,
+  acceptedProjects: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   chart: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
   plus: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>,
   logout: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
@@ -20,29 +22,27 @@ const Sidebar = ({ role, isOpen, onClose }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate(role === 'admin' ? '/zinebadmin' : '/login');
   };
 
   const navLinks = role === 'admin' ? [
     { path: '/dashboard/admin', label: 'Vue d\'ensemble', icon: Icons.dashboard, end: true },
-    { path: '/dashboard/admin/submissions', label: 'Toutes les Soumissions', icon: Icons.folder },
+    { path: '/dashboard/admin/submissions', label: 'Idees publiques', icon: Icons.folder },
+    { path: '/dashboard/admin/account-requests', label: 'Demandes de compte', icon: Icons.plus },
+    { path: '/dashboard/admin/accepted-projects', label: 'Projets acceptés', icon: Icons.acceptedProjects },
     { path: '/dashboard/admin/events', label: 'Événements', icon: Icons.calendar },
     { path: '/dashboard/admin/opportunities', label: 'Opportunités', icon: Icons.star },
     { path: '/dashboard/admin/highlights', label: 'Moments d\'Impact', icon: Icons.camera },
     { path: '/dashboard/admin/statistics', label: 'Statistiques (Mock)', icon: Icons.chart },
   ] : [
     { path: '/dashboard/trainee', label: 'Mon Tableau de bord', icon: Icons.dashboard, end: true },
-    { path: '/dashboard/trainee/new-submission', label: 'Nouvelle Soumission', icon: Icons.plus },
-    { path: '/dashboard/trainee/my-submissions', label: 'Mes Projets', icon: Icons.folder },
+    { path: '/dashboard/trainee/my-submissions', label: 'Mon idee acceptee', icon: Icons.folder },
   ];
 
   return (
     <aside className={`dashboard-sidebar ${role}-theme ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <div className="sidebar-logo-text">
-          <div className="logo-cube">C</div>
-          CMC Incubateur
-        </div>
+        <BrandLogo className="brand-logo-sidebar" />
       </div>
       
       <nav className="sidebar-nav">
@@ -71,7 +71,7 @@ const Sidebar = ({ role, isOpen, onClose }) => {
           </div>
           <div className="user-info">
             <div className="user-name">{currentUser?.fullName}</div>
-            <div className="user-role">{currentUser?.role === 'admin' ? 'Administrateur' : `CEF: ${currentUser?.cef}`}</div>
+            <div className="user-role">{currentUser?.role === 'admin' ? (currentUser?.isReadOnlyAdmin ? 'Consultation' : 'Administrateur') : `CEF: ${currentUser?.cef}`}</div>
           </div>
         </div>
         
@@ -84,3 +84,4 @@ const Sidebar = ({ role, isOpen, onClose }) => {
 };
 
 export default Sidebar;
+

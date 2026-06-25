@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Menu, X, Globe, ChevronDown, Shield } from "lucide-react";
+import { Menu, X, Globe, ChevronDown, Shield, Moon, Sun } from "lucide-react";
 import { useUI } from "../../contexts/UIContext";
+import BrandLogo from "../ui/BrandLogo";
 
 const LANGUAGES = [
-    { code: "fr", label: "FR", flag: "🇫🇷" },
-    { code: "ar", label: "AR", flag: "🇲🇦" },
-    { code: "en", label: "EN", flag: "🇬🇧" },
+    { code: "fr", label: "Français" },
+    { code: "en", label: "English" },
 ];
 
 function cx(...classes) {
@@ -17,7 +17,7 @@ function cx(...classes) {
 export default function Navbar() {
     const { t, i18n } = useTranslation();
     const location = useLocation();
-    const { adminUser, logoutAdmin } = useUI();
+    const { adminUser, logoutAdmin, theme, toggleTheme } = useUI();
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [langOpen, setLangOpen] = useState(false);
@@ -44,8 +44,9 @@ export default function Navbar() {
             { path: "/about", label: t("nav.about") },
             { path: "/opportunities", label: t("nav.opportunities") },
             { path: "/events", label: t("nav.events") },
-            { path: "/past-events", label: t("nav.pastEvents") },
-            { path: "/submit", label: t("nav.submit") },
+            { path: "/impact", label: t("nav.impactShort"), mobileLabel: t("impact.badge") },
+            { path: "/submit", label: t("nav.submitShort"), mobileLabel: t("nav.submit") },
+            { path: "/suivi", label: t("nav.trackingShort"), mobileLabel: t("nav.tracking") },
             { path: "/faq", label: t("nav.faq") },
             { path: "/contact", label: t("nav.contact") },
         ],
@@ -54,7 +55,7 @@ export default function Navbar() {
 
     const applyLangToDocument = useCallback((code) => {
         document.documentElement.lang = code;
-        document.documentElement.dir = code === "ar" ? "rtl" : "ltr";
+        document.documentElement.dir = "ltr";
     }, []);
 
     useEffect(() => {
@@ -64,6 +65,7 @@ export default function Navbar() {
 
     const changeLanguage = useCallback(
         async (code) => {
+            localStorage.setItem("i18nextLng", code);
             await i18n.changeLanguage(code);
             applyLangToDocument(code);
             setLangOpen(false);
@@ -124,31 +126,28 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const baseLink = "px-3 py-2 rounded-lg text-sm font-medium transition-colors hover-underline";
+    const baseLink = "topbar-link rounded-lg text-sm font-medium transition-colors hover-underline whitespace-nowrap";
     const activeLink = "text-highlight active";
-    const idleLink = "text-surface-700 hover:text-white";
+    const idleLink = "text-surface-700 hover:text-highlight";
 
     return (
         <header className={cx(
             "fixed top-0 w-full z-50 transition-all duration-300",
             scrolled ? "glass-panel shadow-glow py-2" : "bg-transparent py-4"
         )}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-14">
+            <div className="topbar-container">
+                <div className="flex items-center justify-between gap-4 h-14">
                     {/* Logo */}
                     <Link
                         to="/"
                         className="flex items-center gap-3 font-bold text-xl tracking-tight group"
                         aria-label="CMC BMK Home"
                     >
-                        <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center text-white text-lg font-bold shadow-[0_0_15px_rgba(79,70,229,0.5)] group-hover:scale-105 transition-transform duration-300">
-                            C
-                        </div>
-                        <span className="hidden sm:inline text-white">CMC <span className="text-gradient">BMK</span></span>
+                        <BrandLogo className="brand-logo-navbar" />
                     </Link>
 
                     {/* Desktop Nav */}
-                    <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+                    <nav className="hidden lg:flex items-center justify-center min-w-0 flex-1" aria-label="Main navigation">
                         {navLinks.map((link) => {
                             const active = isActive(link.path);
                             return (
@@ -165,14 +164,14 @@ export default function Navbar() {
                     </nav>
 
                     {/* Right side */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2.5 shrink-0">
                         {/* Language Switcher */}
                         <div className="relative">
                             <button
                                 ref={langBtnRef}
                                 type="button"
                                 onClick={() => setLangOpen((v) => !v)}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-surface-700 hover:text-white hover:bg-white/5 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-surface-700 hover:text-highlight hover:bg-white/5 transition-colors whitespace-nowrap"
                                 aria-label={t("common.language")}
                                 aria-haspopup="menu"
                                 aria-expanded={langOpen}
@@ -211,7 +210,6 @@ export default function Navbar() {
                                                         : "text-surface-700 hover:bg-white/5 hover:text-white"
                                                 )}
                                             >
-                                                <span aria-hidden="true">{lang.flag}</span>
                                                 <span>{lang.label}</span>
                                             </button>
                                         );
@@ -219,6 +217,16 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
+
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            className="theme-toggle-btn"
+                            aria-label={theme === "light" ? t("common.switchToDark") : t("common.switchToLight")}
+                            title={theme === "light" ? t("common.switchToDark") : t("common.switchToLight")}
+                        >
+                            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                        </button>
 
                         {/* Admin actions */}
                         {adminUser ? (
@@ -284,7 +292,7 @@ export default function Navbar() {
                                             : "text-surface-700 hover:bg-white/5 hover:text-white"
                                     )}
                                 >
-                                    {link.label}
+                                    {link.mobileLabel || link.label}
                                 </Link>
                             );
                         })}

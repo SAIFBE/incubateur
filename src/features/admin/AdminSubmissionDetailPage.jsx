@@ -1,321 +1,314 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAppData } from '../../contexts/AppDataContext';
-import { USERS } from '../../data/users';
-import { Tabs, TabPanel } from '../../components/ui/Tabs';
-import Badge from '../../components/ui/Badge';
-import Card, { CardBody, CardHeader } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Textarea from '../../components/ui/Textarea';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  BriefcaseBusiness,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  Copy,
+  GraduationCap,
+  Handshake,
+  Lightbulb,
+  Link2,
+  MessageCircle,
+  UserRound,
+  XCircle,
+} from 'lucide-react';
+import api from '../../services/api';
 import { useToast } from '../../components/ui/Toast';
+import { useAuth } from '../../contexts/AuthContext';
+import Button from '../../components/ui/Button';
+import Select from '../../components/ui/Select';
+import Textarea from '../../components/ui/Textarea';
+import './admin.css';
 
-const STATUS_OPTIONS = [
-  { value: 'received', label: 'Marquer comme Reçu', color: 'var(--color-info)' },
-  { value: 'under_review', label: 'En cours d\'évaluation', color: 'var(--color-warning)' },
-  { value: 'requires_changes', label: 'Demander des modifications', color: 'var(--color-danger)' },
-  { value: 'accepted', label: 'Accepter le projet', color: 'var(--color-success)' },
-  { value: 'rejected', label: 'Rejeter le projet', color: 'var(--color-danger)' },
-  { value: 'archived', label: 'Archiver', color: 'var(--color-text-tertiary)' },
-];
+const statusLabels = {
+  pending: 'En attente',
+  under_review: 'En etude',
+  selected: 'Selectionne',
+  rejected: 'Refuse',
+  account_requested: 'Compte demande',
+  account_created: 'Compte cree',
+};
+
+const valueLabels = {
+  male: 'Homme',
+  female: 'Femme',
+  single: 'Celibataire',
+  married: 'Marie(e)',
+  divorced: 'Divorce(e)',
+  widowed: 'Veuf(ve)',
+  primary: 'Primaire',
+  secondary: 'Secondaire',
+  baccalaureate: 'Bachelier',
+  higher_diploma: 'Diplome superieur',
+  ofppt_diploma: 'Diplome OFPPT',
+  none: 'Aucun',
+  in_training: 'En cours de formation',
+  job_seeker: 'Chercheur d emploi',
+  employee: 'Salarie(e) / Employe(e)',
+  entrepreneur: 'Entrepreneur',
+  informal: 'Informel',
+  neet: 'NEET',
+  other: 'Autre',
+  ofppt_trainee: 'Stagiaire de l OFPPT',
+  outside_ofppt: 'Hors OFPPT',
+  auto_entrepreneur: 'Auto-entrepreneur',
+  legal_entity: 'Personne morale',
+  cooperative: 'Cooperative',
+  individual: 'Personne physique',
+};
+
+const hasValue = (value) => value !== null && value !== undefined && value !== '';
+
+const displayValue = (value, type = 'text') => {
+  if (!hasValue(value)) return 'Non renseigne';
+  if (type === 'boolean') return value === true || value === 1 || value === '1' ? 'Oui' : 'Non';
+  if (type === 'date') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('fr-FR');
+  }
+  return valueLabels[value] || value;
+};
+
+const getInvitationLink = (token) => (
+  token ? window.location.origin + window.location.pathname + '#/demande-compte/' + token : ''
+);
+
+const normalizePhoneForWhatsApp = (phone) => {
+  const digits = String(phone || '').replace(/D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('00')) return digits.slice(2);
+  if (digits.startsWith('0')) return '212' + digits.slice(1);
+  return digits;
+};
+
+const buildWhatsAppUrl = (submission, invitationLink) => {
+  const phone = normalizePhoneForWhatsApp(submission.phone);
+  if (!phone) return '';
+  const message = invitationLink
+    ? 'Bonjour ' + (submission.full_name || '') + ', votre idee a ete selectionnee par l incubateur. Merci de remplir votre demande de compte stagiaire via ce lien securise : ' + invitationLink
+    : 'Bonjour ' + (submission.full_name || '') + ', votre idee a ete selectionnee par l incubateur. L administration vous contactera pour la suite.';
+  return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+};
+
+const DetailItem = ({ label, value, type, wide = false }) => (
+  <div className={'admin-submission-field ' + (wide ? 'is-wide' : '')}>
+    <span>{label}</span>
+    <strong className={!hasValue(value) ? 'is-empty' : ''}>{displayValue(value, type)}</strong>
+  </div>
+);
+
+const DetailSection = ({ number, title, icon: Icon, children }) => (
+  <section className="admin-submission-section">
+    <header>
+      <div className="admin-submission-section-icon"><Icon size={19} /></div>
+      <div>
+        <span>Section {String(number).padStart(2, '0')}</span>
+        <h2>{title}</h2>
+      </div>
+    </header>
+    <div className="admin-submission-fields">{children}</div>
+  </section>
+);
 
 const AdminSubmissionDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { submissions, categories, programs, comments, statusHistory, addComment, changeSubmissionStatus } = useAppData();
   const { showToast } = useToast();
+  const { currentUser } = useAuth();
+  const isReadOnlyAdmin = Boolean(currentUser?.isReadOnlyAdmin);
+  const [submission, setSubmission] = useState(null);
+  const [status, setStatus] = useState('pending');
+  const [comment, setComment] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingInvitation, setIsGeneratingInvitation] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  const [newComment, setNewComment] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setIsDetailLoading(true);
+    setLoadError(false);
+    api.get('/admin/project-ideas/' + id)
+      .then((response) => {
+        if (!active) return;
+        const nextSubmission = response.data?.data ?? response.data;
+        setSubmission(nextSubmission);
+        setStatus(nextSubmission.status || 'pending');
+        setComment(nextSubmission.admin_comment || '');
+      })
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setIsDetailLoading(false);
+      });
+    return () => { active = false; };
+  }, [id]);
 
-  const submission = submissions.find(s => s.id === id);
+  useEffect(() => {
+    if (submission) {
+      setStatus(submission.status || 'pending');
+      setComment(submission.admin_comment || '');
+    }
+  }, [submission]);
 
-  if (!submission) {
-    return (
-      <div className="text-center p-12">
-        <h2 className="text-h2 mb-4">Projet Introuvable</h2>
-        <Button onClick={() => navigate('/dashboard/admin/submissions')}>Retour à la liste</Button>
-      </div>
-    );
-  }
+  const invitationLink = useMemo(() => getInvitationLink(submission?.invitation_token), [submission?.invitation_token]);
+  const whatsappUrl = useMemo(() => (submission ? buildWhatsAppUrl(submission, invitationLink) : ''), [submission, invitationLink]);
 
-  const trainee = USERS.find(u => u.id === submission.userId);
-  const category = categories.find(c => c.id === submission.category);
-  const program = programs.find(p => p.id === submission.program);
-  
-  const projectComments = comments.filter(c => c.submissionId === id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  const projectHistory = statusHistory.filter(h => h.submissionId === id).sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+  if (isDetailLoading && !submission) return <div className="admin-submission-state">Chargement de la soumission...</div>;
+  if (loadError && !submission) return <div className="admin-submission-state">Soumission introuvable.</div>;
+  if (!submission) return <div className="admin-submission-state">Soumission introuvable.</div>;
 
-  const handleSaveEvaluation = async () => {
-    setIsSubmitting(true);
+  const saveReview = async (nextStatus = status) => {
+    setIsSaving(true);
+    setStatus(nextStatus);
     try {
-      let isSuccess = false;
-      // If a new status is selected and it's different from the current one
-      if (selectedStatus && selectedStatus !== submission.status) {
-        await changeSubmissionStatus(id, selectedStatus);
-        isSuccess = true;
-      }
-      
-      // If there's a comment
-      if (newComment.trim()) {
-        await addComment(id, newComment);
-        setNewComment('');
-        isSuccess = true;
-      }
-
-      if (isSuccess) {
-        setSelectedStatus(''); // reset
-        showToast({ title: 'Succès', message: 'Évaluation enregistrée avec succès.' });
+      let response;
+      if (nextStatus === 'selected') {
+        response = await api.post('/admin/project-ideas/' + submission.id + '/select', { admin_comment: comment });
+      } else if (nextStatus === 'rejected') {
+        response = await api.post('/admin/project-ideas/' + submission.id + '/reject', { admin_comment: comment });
       } else {
-         showToast({ title: 'Info', message: 'Aucune modification apportée.', type: 'info' });
+        response = await api.patch('/admin/project-ideas/' + submission.id + '/review', { status: nextStatus, admin_comment: comment });
       }
-    } catch (err) {
-      showToast({ title: 'Erreur', message: 'Échec de l\'enregistrement.', type: 'error' });
+      setSubmission(response.data?.data ?? response.data);
+      showToast({ title: 'Succes', message: 'Evaluation enregistree avec succes.' });
+    } catch (error) {
+      showToast({ title: 'Erreur', message: error.response?.data?.message || 'Impossible de sauvegarder l evaluation.', type: 'error' });
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
 
+  const generateInvitation = async () => {
+    setIsGeneratingInvitation(true);
+    try {
+      const response = await api.post('/admin/project-ideas/' + submission.id + '/generate-invitation');
+      setSubmission(response.data?.data ?? response.data);
+      showToast({ title: 'Succes', message: 'Lien securise genere.' });
+    } catch (error) {
+      showToast({ title: 'Erreur', message: error.response?.data?.message || 'Impossible de generer le lien.', type: 'error' });
+    } finally {
+      setIsGeneratingInvitation(false);
+    }
+  };
+
+  const copyInvitation = async () => {
+    if (!invitationLink) return;
+    await navigator.clipboard.writeText(invitationLink);
+    showToast({ title: 'Copie', message: 'Lien de creation de compte copie.' });
+  };
+
   return (
-    <div className="pb-12">
-      <div className="mb-6">
-        <button className="text-secondary text-sm mb-2 hover:text-primary transition-colors flex items-center gap-1" onClick={() => navigate('/dashboard/admin/submissions')}>
-          ← Retour aux soumissions
-        </button>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h1 className="page-title mb-0">{submission.title}</h1>
-            <Badge status={submission.status} />
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-semibold">{trainee?.fullName}</div>
-            <div className="text-xs text-secondary">CEF: {trainee?.cef}</div>
-          </div>
-        </div>
+    <div className="animate-fade-in pb-12">
+      <div className="admin-submission-topbar">
+        <Button variant="ghost" onClick={() => navigate('/dashboard/admin/submissions')}>
+          <ArrowLeft size={17} /> Retour
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Details & History */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <Tabs defaultActive="project">
-            <TabPanel value="project" label="Détails du projet">
-              <Card>
-                <CardBody className="flex flex-col gap-6">
-                  <div className="details-grid pb-6 border-b border-border">
-                    <div className="detail-item">
-                      <span className="detail-label">Catégorie</span>
-                      <span className="detail-value flex items-center gap-2">
-                        {category?.icon} {category?.name}
-                      </span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Filière</span>
-                      <span className="detail-value">{program?.name}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Type</span>
-                      <span className="detail-value">{submission.projectType === 'team' ? 'En Équipe' : 'Individuel'}</span>
-                    </div>
-                     <div className="detail-item">
-                      <span className="detail-label">Soumis le</span>
-                      <span className="detail-value text-secondary">
-                         {new Date(submission.createdAt).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Fields */}
-                  <div>
-                    <h3 className="text-h3 text-primary mb-2">Résumé</h3>
-                    <p className="text-sm text-body whitespace-pre-wrap">{submission.summary}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border pt-4">
-                     <div>
-                      <h4 className="font-semibold text-danger mb-2 text-sm">Problème</h4>
-                      <p className="text-sm text-secondary whitespace-pre-wrap">{submission.problem}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-success mb-2 text-sm">Solution</h4>
-                      <p className="text-sm text-secondary whitespace-pre-wrap">{submission.solution}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
-                    <div>
-                      <h4 className="font-semibold mb-1 text-sm">Objectifs</h4>
-                      <p className="text-sm text-body whitespace-pre-wrap">{submission.objectives || '-'}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-1 text-sm">Innovation</h4>
-                      <p className="text-sm text-body whitespace-pre-wrap">{submission.innovation || '-'}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
-                     <div>
-                      <h4 className="font-semibold mb-1 text-sm">Membres de l'équipe</h4>
-                      <p className="text-sm text-body whitespace-pre-wrap">{submission.teamMembers}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-1 text-sm">Compétences</h4>
-                      <p className="text-sm text-body whitespace-pre-wrap">{submission.skills}</p>
-                    </div>
-                  </div>
-
-                   <div className="pt-4 border-t border-border">
-                      <h4 className="font-semibold mb-2 text-sm">Accompagnement souhaité</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {submission.supportNeeds.map(need => (
-                          <Badge key={need} className="bg-surface-hover text-primary border-primary-dim">{need.replace('_', ' ')}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                </CardBody>
-              </Card>
-            </TabPanel>
-
-            <TabPanel value="attachments" label={`Pièces jointes (${submission.attachments.length})`}>
-              <Card>
-                <CardBody>
-                  {submission.attachments.length > 0 ? (
-                    <div className="file-list m-0">
-                      {submission.attachments.map((file, idx) => (
-                        <div key={idx} className="file-item hover:border-primary transition-colors cursor-pointer">
-                          <div className="file-info">
-                            <span className="file-icon flex items-center text-primary">
-                              {file.name.endsWith('.pdf') ? (
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                              ) : (
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                              )}
-                            </span>
-                            <div>
-                              <div className="file-name">{file.name}</div>
-                              <div className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="sm">Télécharger</Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center p-8 text-tertiary">
-                      Aucune pièce jointe.
-                    </div>
-                  )}
-                </CardBody>
-              </Card>
-            </TabPanel>
-            
-            <TabPanel value="history" label="Historique complet">
-              <Card>
-                <CardBody>
-                   {projectHistory.length > 0 ? (
-                    <div className="timeline">
-                      {projectHistory.map(activity => (
-                        <div className="timeline-item" key={activity.id}>
-                          <div className={`timeline-icon ${activity === projectHistory[0] ? 'active' : ''}`}></div>
-                          <div className="timeline-content">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge status={activity.fromStatus} />
-                              <span className="text-secondary text-xs">→</span>
-                              <Badge status={activity.toStatus} />
-                            </div>
-                            <p className="timeline-meta">
-                              {activity.changedBy} • {new Date(activity.changedAt).toLocaleDateString('fr-FR', {
-                                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-tertiary text-sm py-4">Aucun historique disponible.</p>
-                  )}
-                </CardBody>
-              </Card>
-            </TabPanel>
-          </Tabs>
-        </div>
-
-        {/* Right Column - Evaluation Panel */}
+      <div className="admin-submission-heading">
         <div>
-          <div className="review-panel">
-            <Card>
-              <CardHeader title="Évaluation & Feedback" />
-              <CardBody>
-                {/* Chat History summary */}
-                 <div className="comment-list mb-6" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '8px' }}>
-                  {projectComments.length > 0 ? (
-                    projectComments.map(comment => (
-                      <div key={comment.id} className={`comment-item ${comment.authorRole === 'admin' ? 'is-me' : ''}`}>
-                        <div className="comment-body">
-                          <div className="comment-header">
-                            <span className="comment-author">{comment.authorName}</span>
-                            <span className="comment-date text-xs">
-                              {new Date(comment.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                            </span>
-                          </div>
-                          <p className="comment-text text-xs">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-center text-tertiary text-sm py-2">Aucun message précédent.</p>
-                  )}
-                </div>
-
-                <div className="pt-4 border-t border-border">
-                  <h4 className="font-semibold text-sm mb-3">Nouvelle action</h4>
-                  
-                  <div className="mb-4">
-                    {STATUS_OPTIONS.map(opt => {
-                      // Don't show options that don't make sense (like moving back to draft)
-                      if (submission.status === opt.value) return null;
-                      return (
-                        <label 
-                          key={opt.value} 
-                          className={`status-option ${selectedStatus === opt.value ? 'selected' : ''}`}
-                        >
-                          <input 
-                            type="radio" 
-                            name="statusUpdate" 
-                            value={opt.value} 
-                            checked={selectedStatus === opt.value}
-                            onChange={() => setSelectedStatus(opt.value)}
-                          />
-                          <span style={{ color: opt.color, fontWeight: '500', fontSize: '0.875rem' }}>
-                            {opt.label}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-
-                  <Textarea 
-                    placeholder="Ajouter un commentaire pour le stagiaire (optionnel, mais recommandé pour rejets/modifs)..." 
-                    rows={4}
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    containerClass="mb-4"
-                  />
-                  
-                  <Button 
-                    variant="primary" 
-                    fullWidth 
-                    onClick={handleSaveEvaluation}
-                    disabled={(!newComment.trim() && !selectedStatus) || isSubmitting}
-                    isLoading={isSubmitting}
-                  >
-                    Enregistrer l'évaluation
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
+          <p>Fiche d inscription OFPPT</p>
+          <h1>{displayValue(submission.full_name || submission.user?.name)}</h1>
+          <span>Soumission #{submission.id} - recue le {displayValue(submission.created_at, 'date')}</span>
         </div>
+        <span className={'admin-status-badge is-' + submission.status}>{statusLabels[submission.status] || submission.status}</span>
+      </div>
+
+      <div className="admin-submission-layout">
+        <main className="admin-submission-sections">
+          <DetailSection number={1} title="Informations personnelles" icon={UserRound}>
+            <DetailItem label="Nom et prenom" value={submission.full_name} />
+            <DetailItem label="CIN" value={submission.cin} />
+            <DetailItem label="Sexe" value={submission.gender} />
+            <DetailItem label="Date de naissance" value={submission.birth_date} type="date" />
+            <DetailItem label="Lieu de naissance" value={submission.birth_place} />
+            <DetailItem label="Situation familiale" value={submission.family_status} />
+            <DetailItem label="Adresse actuelle" value={submission.current_address} wide />
+            <DetailItem label="Email" value={submission.email} />
+            <DetailItem label="Telephone" value={submission.phone} />
+          </DetailSection>
+
+          <DetailSection number={2} title="Niveau d instruction" icon={GraduationCap}>
+            <DetailItem label="Niveau d instruction" value={submission.education_level} />
+            <DetailItem label="Possede un diplome" value={submission.has_diploma} type="boolean" />
+            <DetailItem label="Specialite du diplome" value={submission.diploma_specialty} />
+            <DetailItem label="Annee d obtention" value={submission.diploma_year} />
+            <DetailItem label="Etablissement du diplome" value={submission.diploma_establishment} wide />
+            <DetailItem label="Laureat de l OFPPT" value={submission.is_ofppt_graduate} type="boolean" />
+            <DetailItem label="Niveau de qualification" value={submission.qualification_level} />
+            <DetailItem label="Specialite OFPPT" value={submission.ofppt_specialty} />
+            <DetailItem label="Annee du diplome OFPPT" value={submission.ofppt_diploma_year} />
+            <DetailItem label="Actuellement en formation" value={submission.is_in_training} type="boolean" />
+            <DetailItem label="Type de formation" value={submission.training_type} />
+            <DetailItem label="Specialite de formation" value={submission.training_specialty} />
+            <DetailItem label="Niveau de formation" value={submission.training_level} />
+            <DetailItem label="Etablissement de formation" value={submission.training_establishment} wide />
+          </DetailSection>
+
+          <DetailSection number={3} title="Activite actuelle" icon={BriefcaseBusiness}>
+            <DetailItem label="Activite actuelle" value={submission.current_activity} />
+            <DetailItem label="Autre activite" value={submission.current_activity_other} />
+          </DetailSection>
+
+          <DetailSection number={4} title="Objet de l inscription" icon={Lightbulb}>
+            <DetailItem label="Interesse(e) par l employabilite" value={submission.interested_employability} type="boolean" />
+            <DetailItem label="Interesse(e) par l entrepreneuriat" value={submission.interested_entrepreneurship} type="boolean" />
+            <DetailItem label="Porteur d idee de projet" value={submission.has_project_idea} type="boolean" />
+            <DetailItem label="Porteur de projet" value={submission.has_project} type="boolean" />
+            <DetailItem label="Autre objectif d inscription" value={submission.registration_objective_other} wide />
+            <DetailItem label="Description de l idee" value={submission.project_idea_description} wide />
+            <DetailItem label="Description du projet" value={submission.project_description} wide />
+          </DetailSection>
+
+          <DetailSection number={5} title="Entreprise existante" icon={Building2}>
+            <DetailItem label="A cree une entreprise" value={submission.has_created_company} type="boolean" />
+            <DetailItem label="Statut juridique" value={submission.legal_status} />
+            <DetailItem label="Autre statut juridique" value={submission.legal_status_other} />
+            <DetailItem label="Activite de l entreprise" value={submission.company_activity} />
+            <DetailItem label="Date de creation" value={submission.company_creation_date} type="date" />
+            <DetailItem label="Entreprise active" value={submission.company_is_active} type="boolean" />
+            <DetailItem label="Date de debut d activite" value={submission.activity_start_date} type="date" />
+          </DetailSection>
+
+          <DetailSection number={6} title="Accompagnement entrepreneurial" icon={Handshake}>
+            <DetailItem label="Souhaite un accompagnement entrepreneurial" value={submission.interested_in_support} type="boolean" wide />
+          </DetailSection>
+        </main>
+
+        <aside className="admin-review-panel">
+          {isReadOnlyAdmin ? (
+            <div className="admin-review-card">
+              <div className="admin-review-heading"><span>Mode consultation</span><h2>Lecture seule</h2></div>
+              <p className="text-tertiary text-sm">Ce compte peut consulter la fiche et son statut, mais ne peut pas modifier la decision, generer un lien ou contacter le candidat.</p>
+            </div>
+          ) : (
+            <>
+              <div className="admin-review-card">
+                <div className="admin-review-heading"><span>Decision administrative</span><h2>Evaluation de la fiche</h2></div>
+                <div className="admin-review-quick-actions">
+                  <button type="button" className="is-review" onClick={() => saveReview('under_review')} disabled={isSaving}><Clock3 size={17} /> Mettre en etude</button>
+                  <button type="button" className="is-accept" onClick={() => saveReview('selected')} disabled={isSaving}><CheckCircle2 size={17} /> Selectionner</button>
+                  <button type="button" className="is-reject" onClick={() => saveReview('rejected')} disabled={isSaving}><XCircle size={17} /> Refuser</button>
+                </div>
+                <Select label="Statut de decision" value={status} onChange={(event) => setStatus(event.target.value)} options={[{ value: 'pending', label: 'En attente' }, { value: 'under_review', label: 'En etude' }, { value: 'selected', label: 'Selectionne' }, { value: 'rejected', label: 'Refuse' }]} />
+                <Textarea label="Commentaire de l administration" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Ajoutez vos retours, conseils ou motifs de decision..." rows={6} />
+                <Button variant="primary" fullWidth onClick={() => saveReview()} isLoading={isSaving}>Enregistrer l evaluation</Button>
+              </div>
+
+              <div className="admin-review-card mt-4">
+                <div className="admin-review-heading"><span>Compte stagiaire</span><h2>Invitation securisee</h2></div>
+                <Button variant="secondary" fullWidth onClick={generateInvitation} isLoading={isGeneratingInvitation} disabled={submission.status !== 'selected'}><Link2 size={17} /> Generer le lien de creation de compte</Button>
+                {invitationLink && <div className="admin-invitation-box"><span>Lien securise</span><code>{invitationLink}</code><Button variant="ghost" size="sm" onClick={copyInvitation}><Copy size={16} /> Copier</Button></div>}
+                {whatsappUrl ? <a className="btn btn-primary w-full justify-center" href={whatsappUrl} target="_blank" rel="noreferrer"><MessageCircle size={17} /> Contacter sur WhatsApp</a> : <p className="text-tertiary text-sm">Telephone non renseigne pour WhatsApp.</p>}
+              </div>
+            </>
+          )}
+        </aside>
       </div>
     </div>
   );

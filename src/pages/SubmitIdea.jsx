@@ -31,8 +31,7 @@ const stepSchemas = [
 ];
 
 export default function SubmitIdea() {
-    const { t, i18n } = useTranslation();
-    const lang = i18n.language;
+    const { t } = useTranslation();
     const { addSubmission } = useDataStore();
     const { addToast } = useUI();
     const fileInputRef = useRef(null);
@@ -137,7 +136,7 @@ export default function SubmitIdea() {
     if (submitted) {
         return (
             <div className="fade-in pb-20">
-                <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
+                <div className="bg-gradient-primary text-white pt-32 pb-20 text-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-dots opacity-30"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('submit.success.title')}</h1>
@@ -172,7 +171,7 @@ export default function SubmitIdea() {
 
     return (
         <div className="fade-in pb-20">
-            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
+            <div className="bg-gradient-primary text-white pt-32 pb-20 text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-dots opacity-30"></div>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('submit.title')}</h1>

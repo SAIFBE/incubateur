@@ -1,147 +1,206 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { SUBMISSIONS as initialSubmissions, COMMENTS as initialComments, STATUS_HISTORY as initialHistory } from '../data/submissions';
+﻿import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import api from '../services/api';
 import { CATEGORIES } from '../data/categories';
 import { PROGRAMS } from '../data/programs';
 import { useAuth } from './AuthContext';
 
 const AppDataContext = createContext(null);
 
+const unwrapResource = (response) => response?.data?.data ?? response?.data ?? null;
+
+const normalizeCollection = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
+
 export const AppDataProvider = ({ children }) => {
   const { currentUser } = useAuth();
-  
-  // Load from localStorage or use initial data
-  const loadData = (key, initial) => {
+  const [submissions, setSubmissions] = useState([]);
+  const [statusHistory, setStatusHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const categories = useMemo(() => CATEGORIES, []);
+  const programs = useMemo(() => PROGRAMS, []);
+  const comments = useMemo(() => [], []);
+
+  const fetchAllAdminSubmissions = useCallback(async () => {
+    const firstResponse = await api.get('/admin/project-ideas', { params: { page: 1 } });
+    const firstPayload = firstResponse.data;
+    const firstItems = normalizeCollection(firstPayload);
+    const lastPage = firstPayload?.meta?.last_page || 1;
+
+    if (lastPage <= 1) return firstItems;
+
+    const pages = await Promise.all(
+      Array.from({ length: lastPage - 1 }, (_, index) =>
+        api.get('/admin/project-ideas', { params: { page: index + 2 } })
+      )
+    );
+
+    return [
+      ...firstItems,
+      ...pages.flatMap((response) => normalizeCollection(response.data)),
+    ];
+  }, []);
+
+  const getSubmissions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const stored = localStorage.getItem(`cmc_incubator_${key}`);
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.error(`Failed to load ${key} from local storage`, e);
+      const data = currentUser?.role === 'admin'
+        ? await fetchAllAdminSubmissions()
+        : normalizeCollection(unwrapResource(await api.get('/my-project-ideas')));
+
+      setSubmissions(data);
+      return data;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    return initial;
-  };
+  }, [currentUser?.role, fetchAllAdminSubmissions]);
 
-  const [submissions, setSubmissions] = useState(() => loadData('submissions', initialSubmissions));
-  const [comments, setComments] = useState(() => loadData('comments', initialComments));
-  const [statusHistory, setStatusHistory] = useState(() => loadData('history', initialHistory));
-  const categories = CATEGORIES;
-  const programs = PROGRAMS;
+  const getMySubmissions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = normalizeCollection(unwrapResource(await api.get('/my-project-ideas')));
+      setSubmissions(data);
+      return data;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Persist to localStorage on change
+  const getSubmission = useCallback(async (id) => {
+    const submission = currentUser?.role === 'admin'
+      ? unwrapResource(await api.get(`/admin/project-ideas/${id}`))
+      : normalizeCollection(unwrapResource(await api.get('/my-project-ideas')))
+        .find((item) => String(item.id) === String(id));
+
+    if (!submission) {
+      throw new Error('Project idea not found');
+    }
+
+    setSubmissions((previous) => {
+      const exists = previous.some((item) => String(item.id) === String(submission.id));
+      return exists
+        ? previous.map((item) => (String(item.id) === String(submission.id) ? submission : item))
+        : [submission, ...previous];
+    });
+
+    return submission;
+  }, [currentUser?.role]);
+
+  const createSubmission = useCallback(async (data) => {
+    const submission = unwrapResource(await api.post('/project-ideas', data));
+    setSubmissions((previous) => [submission, ...previous]);
+    return submission;
+  }, []);
+
+  const updateSubmission = useCallback(async (id, data) => {
+    const submission = unwrapResource(await api.put(`/submissions/${id}`, data));
+    setSubmissions((previous) =>
+      previous.map((item) => (String(item.id) === String(id) ? submission : item))
+    );
+    return submission;
+  }, []);
+
+  const updateSubmissionStatus = useCallback(async (id, data) => {
+    const submission = unwrapResource(await api.patch(`/admin/project-ideas/${id}/review`, {
+      status: data.status,
+      admin_comment: data.admin_comment ?? '',
+    }));
+
+    setSubmissions((previous) =>
+      previous.map((item) => (String(item.id) === String(id) ? submission : item))
+    );
+
+    return submission;
+  }, []);
+
+  const changeSubmissionStatus = useCallback((id, status, adminComment = '') => (
+    updateSubmissionStatus(id, { status, admin_comment: adminComment })
+  ), [updateSubmissionStatus]);
+
+  const addSubmission = useCallback((data) => createSubmission(data), [createSubmission]);
+  const archiveSubmission = useCallback((id) => updateSubmissionStatus(id, { status: 'rejected' }), [updateSubmissionStatus]);
+  const addComment = useCallback(async () => null, []);
+
+  const getStatusHistory = useCallback(async () => {
+    const response = await api.get('/submission-status-history');
+    const data = Array.isArray(response.data) ? response.data : [];
+    setStatusHistory(data);
+    return data;
+  }, []);
+
+  const getStatistics = useCallback(async () => {
+    const response = await api.get('/admin/statistics');
+    return response.data;
+  }, []);
+
   useEffect(() => {
-    localStorage.setItem('cmc_incubator_submissions', JSON.stringify(submissions));
-    localStorage.setItem('cmc_incubator_comments', JSON.stringify(comments));
-    localStorage.setItem('cmc_incubator_history', JSON.stringify(statusHistory));
-  }, [submissions, comments, statusHistory]);
-
-  const generateId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-  // --- Submissions Mutations ---
-
-  const addSubmission = async (submissionData, isDraft = true) => {
-    if (!currentUser) return null;
-    
-    // Mock delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const newStatus = isDraft ? 'draft' : 'submitted';
-    const newSubmission = {
-      ...submissionData,
-      id: generateId('sub'),
-      userId: currentUser.id,
-      status: newStatus,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    setSubmissions(prev => [newSubmission, ...prev]);
-
-    // Add history record if submitted directly
-    if (!isDraft) {
-      addHistoryRecord(newSubmission.id, 'draft', 'submitted');
+    if (!currentUser) {
+      setSubmissions([]);
+      setStatusHistory([]);
+      return;
     }
 
-    return newSubmission;
-  };
+    const loader = currentUser.role === 'admin' ? getSubmissions : getMySubmissions;
+    loader().catch(() => undefined);
+    getStatusHistory().catch(() => undefined);
+  }, [currentUser, getMySubmissions, getStatusHistory, getSubmissions]);
 
-  const updateSubmission = async (id, updateData, newStatus = null) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setSubmissions(prev => prev.map(sub => {
-      if (sub.id === id) {
-        const updated = { ...sub, ...updateData, updatedAt: new Date().toISOString() };
-        if (newStatus && sub.status !== newStatus) {
-          updated.status = newStatus;
-          addHistoryRecord(id, sub.status, newStatus);
-        }
-        return updated;
-      }
-      return sub;
-    }));
-  };
-
-  const changeSubmissionStatus = async (id, newStatus) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setSubmissions(prev => prev.map(sub => {
-      if (sub.id === id && sub.status !== newStatus) {
-        addHistoryRecord(id, sub.status, newStatus);
-        return { ...sub, status: newStatus, updatedAt: new Date().toISOString() };
-      }
-      return sub;
-    }));
-  };
-
-  const archiveSubmission = async (id) => {
-    await changeSubmissionStatus(id, 'archived');
-  };
-
-  // --- Comments Mutations ---
-
-  const addComment = async (submissionId, content) => {
-    if (!currentUser) return;
-    
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const newComment = {
-      id: generateId('msg'),
-      submissionId,
-      authorRole: currentUser.role,
-      authorName: currentUser.fullName,
-      content,
-      createdAt: new Date().toISOString()
-    };
-
-    setComments(prev => [...prev, newComment]);
-    return newComment;
-  };
-
-  // --- History Helper ---
-  const addHistoryRecord = (submissionId, fromStatus, toStatus) => {
-    if (!currentUser) return;
-    const historyRecord = {
-      id: generateId('hist'),
-      submissionId,
-      fromStatus,
-      toStatus,
-      changedBy: currentUser.fullName,
-      changedAt: new Date().toISOString()
-    };
-    setStatusHistory(prev => [...prev, historyRecord]);
-  };
+  const value = useMemo(() => ({
+    submissions,
+    comments,
+    statusHistory,
+    categories,
+    programs,
+    loading,
+    error,
+    getSubmissions,
+    getMySubmissions,
+    getSubmission,
+    createSubmission,
+    updateSubmission,
+    updateSubmissionStatus,
+    changeSubmissionStatus,
+    addSubmission,
+    archiveSubmission,
+    addComment,
+    getStatusHistory,
+    getStatistics,
+  }), [
+    submissions,
+    statusHistory,
+    loading,
+    error,
+    getSubmissions,
+    getMySubmissions,
+    getSubmission,
+    createSubmission,
+    updateSubmission,
+    updateSubmissionStatus,
+    changeSubmissionStatus,
+    addSubmission,
+    archiveSubmission,
+    addComment,
+    getStatusHistory,
+    getStatistics,
+    comments,
+    categories,
+    programs,
+  ]);
 
   return (
-    <AppDataContext.Provider value={{
-      submissions,
-      comments,
-      statusHistory,
-      categories,
-      programs,
-      addSubmission,
-      updateSubmission,
-      changeSubmissionStatus,
-      archiveSubmission,
-      addComment
-    }}>
+    <AppDataContext.Provider value={value}>
       {children}
     </AppDataContext.Provider>
   );
@@ -154,3 +213,6 @@ export const useAppData = () => {
   }
   return context;
 };
+
+
+

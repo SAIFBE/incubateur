@@ -1,402 +1,595 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppData } from '../../contexts/AppDataContext';
-import { useToast } from '../../components/ui/Toast';
-import Stepper from '../../components/ui/Stepper';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Textarea from '../../components/ui/Textarea';
-import Select from '../../components/ui/Select';
-import Card, { CardBody, CardHeader } from '../../components/ui/Card';
-
-const STEPS = [
-  'Général',
-  'Description',
-  'Marché',
-  'Équipe & Besoins',
-  'Pièces jointes',
-  'Révision'
-];
-
-const INIT_FORM = {
-  title: '', category: '', sector: '', program: '', projectType: 'individual',
-  summary: '', problem: '', solution: '', objectives: '', innovation: '',
-  targetAudience: '', marketNeed: '', existingAlternatives: '', differentiation: '',
-  teamMembers: '', skills: '', supportNeeds: [],
-  attachments: []
-};
-
-const NewSubmissionPage = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState(INIT_FORM);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { categories, programs, addSubmission } = useAppData();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
-      const currentArr = formData[name] || [];
-      const newArr = checked 
-        ? [...currentArr, value] 
-        : currentArr.filter(item => item !== value);
-      setFormData({ ...formData, [name]: newArr });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer?.files || e.target.files || []);
-    const newAttachments = files.map(f => ({
-      name: f.name,
-      size: f.size,
-      type: f.type
-    }));
-    setFormData({ 
-      ...formData, 
-      attachments: [...formData.attachments, ...newAttachments] 
-    });
-  };
-
-  const removeFile = (index) => {
-    const updated = [...formData.attachments];
-    updated.splice(index, 1);
-    setFormData({ ...formData, attachments: updated });
-  };
-
-  // Very basic validation per step to unblock UX but ensure required fields
-  const validateStep = (step) => {
-    switch(step) {
-      case 0: return formData.title && formData.category && formData.sector && formData.program;
-      case 1: return formData.summary && formData.problem && formData.solution;
-      case 2: return formData.targetAudience && formData.marketNeed;
-      case 3: return formData.teamMembers && formData.skills;
-      default: return true;
-    }
-  };
-
-  const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
-      window.scrollTo(0, 0);
-    } else {
-      showToast({ title: 'Erreur', message: 'Veuillez remplir tous les champs obligatoires.', type: 'error' });
-    }
-  };
-
-  const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
-    window.scrollTo(0, 0);
-  };
-
-  const handleSaveDraft = async () => {
-    setIsSubmitting(true);
-    try {
-      if (!formData.title) {
-        showToast({ title: 'Erreur', message: 'Le titre du projet est requis pour sauvegarder un brouillon.', type: 'error' });
-        setIsSubmitting(false);
-        return;
-      }
-      await addSubmission(formData, true);
-      showToast({ title: 'Succès', message: 'Brouillon sauvegardé avec succès.' });
-      navigate('/dashboard/trainee/my-submissions');
-    } catch (err) {
-      showToast({ title: 'Erreur', message: 'Échec de la sauvegarde.', type: 'error' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      await addSubmission(formData, false);
-      showToast({ title: 'Succès', message: 'Projet soumis avec succès à l\'évaluation.' });
-      navigate('/dashboard/trainee/my-submissions');
-    } catch (err) {
-      showToast({ title: 'Erreur', message: 'Échec de la soumission.', type: 'error' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Rendeding sub-components for steps
-  const renderStep0 = () => (
-    <div className="animate-fade-in">
-      <h3 className="text-h3 mb-6">Informations Générales</h3>
-      <div className="grid-2">
-        <Input 
-          label="Titre du projet" 
-          name="title" 
-          value={formData.title} 
-          onChange={handleInputChange} 
-          required 
-          placeholder="Ex: Smart AgroTech" 
-        />
-        <Select 
-          label="Catégorie" 
-          name="category" 
-          value={formData.category} 
-          onChange={handleInputChange} 
-          required
-          options={categories.map(c => ({ value: c.id, label: `${c.name}` }))}
-        />
-        <Input 
-          label="Secteur d'activité" 
-          name="sector" 
-          value={formData.sector} 
-          onChange={handleInputChange} 
-          required 
-          placeholder="Ex: Agriculture, Santé..." 
-        />
-        <Select 
-          label="Filière (Votre programme)" 
-          name="program" 
-          value={formData.program} 
-          onChange={handleInputChange} 
-          required
-          options={programs.map(p => ({ value: p.id, label: p.name }))}
-        />
-      </div>
-      <div className="mt-4">
-        <label className="form-label mb-2 block">Type de projet</label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer p-3 border border-border rounded-lg" style={{ background: formData.projectType === 'individual' ? 'var(--color-primary-dim)' : 'var(--color-surface)', borderColor: formData.projectType === 'individual' ? 'var(--color-primary)' : 'var(--color-border)' }}>
-            <input type="radio" name="projectType" value="individual" checked={formData.projectType === 'individual'} onChange={handleInputChange} />
-            Individuel
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer p-3 border border-border rounded-lg" style={{ background: formData.projectType === 'team' ? 'var(--color-primary-dim)' : 'var(--color-surface)', borderColor: formData.projectType === 'team' ? 'var(--color-primary)' : 'var(--color-border)' }}>
-            <input type="radio" name="projectType" value="team" checked={formData.projectType === 'team'} onChange={handleInputChange} />
-            En Équipe
-          </label>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStep1 = () => (
-    <div className="animate-fade-in">
-      <h3 className="text-h3 mb-6">Description du Projet</h3>
-      <Textarea label="Résumé exécutif" name="summary" value={formData.summary} onChange={handleInputChange} required placeholder="Décrivez votre projet en quelques phrases..." rows={3} />
-      <Textarea label="Problème identifié" name="problem" value={formData.problem} onChange={handleInputChange} required placeholder="Quel problème essayez-vous de résoudre ?" rows={3} />
-      <Textarea label="Solution proposée" name="solution" value={formData.solution} onChange={handleInputChange} required placeholder="Comment votre projet résout-il ce problème ?" rows={3} />
-      <div className="grid-2">
-        <Textarea label="Objectifs" name="objectives" value={formData.objectives} onChange={handleInputChange} placeholder="Quels sont les objectifs clés ?" rows={3} />
-        <Textarea label="Innovation / Valeur ajoutée" name="innovation" value={formData.innovation} onChange={handleInputChange} placeholder="En quoi votre solution est-elle innovante ?" rows={3} />
-      </div>
-    </div>
-  );
-
-  const renderStep2 = () => (
-    <div className="animate-fade-in">
-      <h3 className="text-h3 mb-6">Marché & Bénéficiaires</h3>
-      <Textarea label="Public cible / Bénéficiaires" name="targetAudience" value={formData.targetAudience} onChange={handleInputChange} required placeholder="À qui s'adresse ce projet ?" rows={3} />
-      <Textarea label="Besoin du marché" name="marketNeed" value={formData.marketNeed} onChange={handleInputChange} required placeholder="Prouvez qu'il y a une demande réelle." rows={3} />
-      <div className="grid-2">
-        <Textarea label="Alternatives existantes" name="existingAlternatives" value={formData.existingAlternatives} onChange={handleInputChange} placeholder="Qui sont vos concurrents ?" rows={3} />
-        <Textarea label="Différenciation" name="differentiation" value={formData.differentiation} onChange={handleInputChange} placeholder="Pourquoi vous choisirait-on ?" rows={3} />
-      </div>
-    </div>
-  );
-
-  const renderStep3 = () => (
-    <div className="animate-fade-in">
-      <h3 className="text-h3 mb-6">Équipe & Besoins d'accompagnement</h3>
-      <Textarea label="Membres de l'équipe et Rôles" name="teamMembers" value={formData.teamMembers} onChange={handleInputChange} required placeholder="Lister les prénoms et rôles de chacun..." rows={3} />
-      <Textarea label="Compétences existantes" name="skills" value={formData.skills} onChange={handleInputChange} required placeholder="Ex: Développement Web, Design, Marketing..." rows={2} />
-      
-      <div className="mt-6">
-        <label className="form-label mb-2 block text-md">De quel type d'accompagnement avez-vous besoin ?</label>
-        <div className="grid-2">
-          {['mentoring', 'technical support', 'funding guidance', 'networking', 'training'].map((need) => (
-            <label key={need} className="flex items-center gap-2 p-3 bg-surface border border-border rounded-lg cursor-pointer hover:border-primary">
-              <input type="checkbox" name="supportNeeds" value={need} checked={formData.supportNeeds.includes(need)} onChange={handleInputChange} />
-              <span className="capitalize">{need.replace('_', ' ')}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStep4 = () => (
-    <div className="animate-fade-in">
-      <h3 className="text-h3 mb-6">Pièces jointes <span className="text-sm font-normal text-secondary">(Optionnel)</span></h3>
-      <p className="text-body mb-4">Uploadez votre Pitch Deck, Business Plan ou Maquettes (Front-end only simulation).</p>
-      
-      <div 
-        className="upload-area"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleFileDrop}
-        onClick={() => document.getElementById('fileUpload').click()}
-      >
-        <input 
-          id="fileUpload" 
-          type="file" 
-          multiple 
-          accept=".pdf,.png,.jpg,.jpeg" 
-          style={{ display: 'none' }} 
-          onChange={handleFileDrop}
-        />
-        <div className="upload-icon flex justify-center text-primary mb-4">
-          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-        </div>
-        <p className="text-body font-medium">Glissez et déposez vos fichiers ici</p>
-        <p className="text-sm text-tertiary mt-2">ou cliquez pour parcourir (Max 10MB)</p>
-        <div className="flex justify-center gap-2 mt-4">
-          <Badge>PDF</Badge>
-          <Badge>PNG</Badge>
-          <Badge>JPG</Badge>
-        </div>
-      </div>
-
-      {formData.attachments.length > 0 && (
-        <div className="file-list">
-          {formData.attachments.map((file, idx) => (
-            <div key={idx} className="file-item">
-              <div className="file-info">
-                <span className="file-icon flex items-center text-primary">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </span>
-                <div>
-                  <div className="file-name">{file.name}</div>
-                  <div className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                </div>
-              </div>
-              <button type="button" className="btn btn-ghost btn-icon text-danger" onClick={() => removeFile(idx)}>✕</button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderStep5 = () => (
-    <div className="animate-fade-in">
-      <h3 className="text-h3 mb-6">Révision finale</h3>
-      
-      <div className="p-6 bg-surface border border-border rounded-lg mb-6">
-        <h4 className="text-xl font-bold mb-4">{formData.title || 'Sans titre'}</h4>
-        
-        <div className="details-grid mb-6">
-          <div className="detail-item">
-            <span className="detail-label">Catégorie</span>
-            <span className="detail-value">{categories.find(c => c.id === formData.category)?.name || '-'}</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Secteur</span>
-            <span className="detail-value">{formData.sector || '-'}</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Filière</span>
-            <span className="detail-value">{programs.find(p => p.id === formData.program)?.name || '-'}</span>
-          </div>
-          <div className="detail-item">
-            <span className="detail-label">Type</span>
-            <span className="detail-value">{formData.projectType === 'team' ? 'En équipe' : 'Individuel'}</span>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <h5 className="font-semibold text-primary mb-2">Résumé exécutif</h5>
-          <p className="text-body text-sm">{formData.summary}</p>
-        </div>
-        
-        <div className="mb-4">
-          <h5 className="font-semibold text-secondary mb-2">Besoins demandés</h5>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.supportNeeds.map(need => (
-              <Badge key={need}>{need.replace('_', ' ')}</Badge>
-            ))}
-            {formData.supportNeeds.length === 0 && <span className="text-tertiary text-sm">Aucun besoin spécifié</span>}
-          </div>
-        </div>
-        
-        <div>
-          <h5 className="font-semibold mb-2">Pièces jointes</h5>
-          <p className="text-body text-sm">{formData.attachments.length} fichier(s) attaché(s)</p>
-        </div>
-      </div>
-      
-      <div className="p-4 bg-info-bg border border-info-border rounded-lg flex gap-4 mt-6">
-        <div className="text-info pt-1">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <h4 className="font-bold text-info mb-1">Prêt à soumettre ?</h4>
-          <p className="text-sm text-body">
-            En soumettant ce projet, il sera envoyé à l'administration pour évaluation. 
-            Vous pouvez également le sauvegarder en tant que brouillon pour le compléter plus tard.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="submission-form-container pb-12">
-      <div className="mb-8 flex justify-between items-end">
-        <div>
-          <h1 className="page-title">Nouvelle Soumission</h1>
-          <p className="page-subtitle">Remplissez les informations de votre idée de projet</p>
-        </div>
-        <Button variant="ghost" onClick={() => navigate('/dashboard/trainee')}>
-          Annuler
-        </Button>
-      </div>
-
-      <Stepper steps={STEPS} currentStep={currentStep} />
-
-      <div className="form-step-content relative">
-        {currentStep === 0 && renderStep0()}
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-        {currentStep === 4 && renderStep4()}
-        {currentStep === 5 && renderStep5()}
-        
-        <div className="form-actions">
-          <Button 
-            variant="ghost" 
-            onClick={prevStep} 
-            disabled={currentStep === 0 || isSubmitting}
-          >
-            ← Précédent
-          </Button>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="secondary" 
-              onClick={handleSaveDraft}
-              disabled={isSubmitting}
-            >
-              Sauvegarder Brouillon
-            </Button>
-            
-            {currentStep < STEPS.length - 1 ? (
-              <Button variant="primary" onClick={nextStep} disabled={isSubmitting}>
-                Suivant →
-              </Button>
-            ) : (
-              <Button variant="primary" onClick={handleSubmit} isLoading={isSubmitting}>
-                Soumettre le Projet
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default NewSubmissionPage;
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAppData } from '../../contexts/AppDataContext';
+import { useToast } from '../../components/ui/Toast';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Textarea from '../../components/ui/Textarea';
+import Card, { CardBody, CardHeader } from '../../components/ui/Card';
+import api from '../../services/api';
+
+const emptySubmission = (user) => ({
+  full_name: user?.name || user?.fullName || '',
+  cin: '',
+  gender: '',
+  birth_date: '',
+  birth_place: '',
+  family_status: '',
+  current_address: '',
+  email: user?.email || '',
+  phone: user?.phone || '',
+  education_level: '',
+  has_diploma: '',
+  diploma_specialty: '',
+  diploma_year: '',
+  diploma_establishment: '',
+  is_ofppt_graduate: '',
+  qualification_level: '',
+  ofppt_specialty: '',
+  ofppt_diploma_year: '',
+  is_in_training: '',
+  training_type: '',
+  training_specialty: '',
+  training_level: '',
+  training_establishment: '',
+  current_activity: '',
+  current_activity_other: '',
+  interested_employability: false,
+  interested_entrepreneurship: false,
+  has_project_idea: false,
+  has_project: false,
+  registration_objective_other: '',
+  project_idea_description: '',
+  project_description: '',
+  has_created_company: false,
+  legal_status: '',
+  legal_status_other: '',
+  company_activity: '',
+  company_creation_date: '',
+  company_is_active: false,
+  activity_start_date: '',
+  interested_in_support: false,
+});
+
+const requiredFields = [
+  'full_name',
+  'cin',
+  'gender',
+  'birth_date',
+  'birth_place',
+  'family_status',
+  'current_address',
+  'email',
+  'phone',
+  'education_level',
+  'has_diploma',
+  'is_ofppt_graduate',
+  'is_in_training',
+];
+
+const fieldLabels = {
+  full_name: 'Nom et prenom',
+  cin: 'CIN',
+  gender: 'Sexe',
+  birth_date: 'Date de naissance',
+  birth_place: 'Lieu de naissance',
+  family_status: 'Situation familiale',
+  current_address: 'Adresse actuelle',
+  email: 'Email',
+  phone: 'Telephone',
+  education_level: "Niveau d'instruction",
+  has_diploma: 'Diplome',
+  diploma_specialty: 'Specialite du diplome',
+  diploma_year: "Annee d'obtention",
+  diploma_establishment: 'Etablissement',
+  is_ofppt_graduate: 'Laureat OFPPT',
+  qualification_level: 'Niveau de qualification',
+  ofppt_specialty: 'Specialite OFPPT',
+  ofppt_diploma_year: 'Annee du diplome OFPPT',
+  is_in_training: 'Formation actuelle',
+  training_type: 'Type de formation',
+  training_specialty: 'Specialite de formation',
+  training_level: 'Niveau de formation',
+  training_establishment: 'Etablissement de formation',
+  registration_objective: "Objet de l'inscription",
+  project_idea_description: "Description de l'idee de projet",
+  project_description: 'Description du projet',
+};
+
+const booleanOptions = [
+  { value: true, label: 'Oui' },
+  { value: false, label: 'Non' },
+];
+
+const toSelectOptions = (items) => items.map(([value, label]) => ({ value, label }));
+
+const sectionBadge = (required) => (
+  <span className={`ofppt-section-badge ${required ? 'is-required' : ''}`}>
+    {required ? 'Obligatoire' : 'Facultatif'}
+  </span>
+);
+
+const isEmpty = (value) => value === null || value === undefined || value === '';
+
+const buildPayload = (formData) => ({
+  ...formData,
+  title: `Fiche OFPPT - ${formData.full_name}`,
+  category: 'ofppt_registration',
+  description: formData.project_description || formData.project_idea_description || 'Fiche inscription OFPPT',
+});
+
+const objectiveFields = [
+  'interested_employability',
+  'interested_entrepreneurship',
+  'has_project_idea',
+  'has_project',
+];
+
+const hasRegistrationObjective = (data) => (
+  objectiveFields.some((field) => Boolean(data[field])) || !isEmpty(data.registration_objective_other)
+);
+
+const isObjectiveComplete = (data) => (
+  hasRegistrationObjective(data)
+  && (!data.has_project_idea || !isEmpty(data.project_idea_description))
+  && (!data.has_project || !isEmpty(data.project_description))
+);
+
+const NewSubmissionPage = () => {
+  const { currentUser } = useAuth();
+  const { updateSubmission, getSubmission } = useAppData();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+
+  const [formData, setFormData] = useState(() => emptySubmission(currentUser));
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedIdea, setSubmittedIdea] = useState(null);
+  const [isLoadingSubmission, setIsLoadingSubmission] = useState(Boolean(editId));
+
+  useEffect(() => {
+    if (!editId) {
+      setFormData((previous) => ({
+        ...previous,
+        full_name: previous.full_name || currentUser?.name || currentUser?.fullName || '',
+        email: previous.email || currentUser?.email || '',
+        phone: previous.phone || currentUser?.phone || '',
+      }));
+      return;
+    }
+
+    let active = true;
+    setIsLoadingSubmission(true);
+    getSubmission(editId)
+      .then((submission) => {
+        if (!active) return;
+        setFormData({
+          ...emptySubmission(currentUser),
+          ...Object.fromEntries(
+            Object.entries(emptySubmission(currentUser)).map(([key, fallback]) => [
+              key,
+              submission[key] ?? fallback,
+            ])
+          ),
+        });
+      })
+      .catch(() => {
+        showToast({ title: 'Erreur', message: 'Impossible de charger la soumission.', type: 'error' });
+        navigate('/dashboard/trainee/my-submissions');
+      })
+      .finally(() => {
+        if (active) setIsLoadingSubmission(false);
+      });
+
+    return () => { active = false; };
+  }, [currentUser, editId, getSubmission, navigate, showToast]);
+
+  const completion = useMemo(() => {
+    const completedFields = requiredFields.filter((field) => !isEmpty(formData[field])).length;
+    const totalRequired = requiredFields.length + 1;
+    const completed = completedFields + (isObjectiveComplete(formData) ? 1 : 0);
+    return Math.round((completed / totalRequired) * 100);
+  }, [formData]);
+
+  const setField = (name, value) => {
+    setFormData((previous) => ({ ...previous, [name]: value }));
+    setErrors((previous) => ({
+      ...previous,
+      [name]: undefined,
+      ...(objectiveFields.includes(name) || name === 'registration_objective_other' ? { registration_objective: undefined } : {}),
+    }));
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value, type, checked } = event.target;
+    setField(name, type === 'checkbox' ? checked : value);
+  };
+
+  const validate = () => {
+    const nextErrors = {};
+
+    requiredFields.forEach((field) => {
+      if (isEmpty(formData[field])) {
+        nextErrors[field] = `${fieldLabels[field]} est obligatoire.`;
+      }
+    });
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      nextErrors.email = 'Veuillez saisir un email valide.';
+    }
+
+    if (formData.has_diploma === true) {
+      ['diploma_specialty', 'diploma_year', 'diploma_establishment'].forEach((field) => {
+        if (isEmpty(formData[field])) nextErrors[field] = `${fieldLabels[field]} est obligatoire.`;
+      });
+    }
+
+    if (formData.is_ofppt_graduate === true) {
+      ['qualification_level', 'ofppt_specialty', 'ofppt_diploma_year'].forEach((field) => {
+        if (isEmpty(formData[field])) nextErrors[field] = `${fieldLabels[field]} est obligatoire.`;
+      });
+    }
+
+    if (formData.is_in_training === true) {
+      ['training_type', 'training_specialty', 'training_level', 'training_establishment'].forEach((field) => {
+        if (isEmpty(formData[field])) nextErrors[field] = `${fieldLabels[field]} est obligatoire.`;
+      });
+    }
+
+    if (!hasRegistrationObjective(formData)) {
+      nextErrors.registration_objective = "Veuillez choisir au moins un objet d'inscription.";
+    }
+
+    if (formData.has_project_idea && isEmpty(formData.project_idea_description)) {
+      nextErrors.project_idea_description = fieldLabels.project_idea_description + ' est obligatoire.';
+    }
+
+    if (formData.has_project && isEmpty(formData.project_description)) {
+      nextErrors.project_description = fieldLabels.project_description + ' est obligatoire.';
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validate()) {
+      showToast({ title: 'Erreur', message: 'Veuillez corriger les champs obligatoires.', type: 'error' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = buildPayload(formData);
+      if (editId) {
+        await updateSubmission(editId, payload);
+        showToast({ title: 'Succes', message: 'Soumission modifiee avec succes.' });
+        navigate('/dashboard/trainee/my-submissions');
+      } else {
+        const response = await api.post('/project-ideas', payload);
+        const idea = response.data?.data ?? response.data;
+        setSubmittedIdea(idea);
+        showToast({ title: 'Succes', message: 'Idee envoyee avec succes.' });
+      }
+    } catch (error) {
+      const apiErrors = error.response?.data?.errors;
+      if (apiErrors) {
+        setErrors(Object.fromEntries(
+          Object.entries(apiErrors).map(([field, messages]) => [field, messages[0]])
+        ));
+      }
+      showToast({
+        title: 'Erreur',
+        message: error.response?.data?.message || 'Impossible d enregistrer la soumission.',
+        type: 'error',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const RadioGroup = ({ name, label, options, required = false }) => (
+    <div className="form-group">
+      <label className="form-label">
+        {label} {required && <span className="text-danger">*</span>}
+      </label>
+      <div className="ofppt-radio-grid">
+        {options.map((option) => (
+          <label
+            key={`${name}-${String(option.value)}`}
+            className={`ofppt-radio ${formData[name] === option.value ? 'is-selected' : ''}`}
+          >
+            <input
+              type="radio"
+              name={name}
+              checked={formData[name] === option.value}
+              onChange={() => setField(name, option.value)}
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+      {errors[name] && <div className="form-error">{errors[name]}</div>}
+    </div>
+  );
+
+  const OptionalSwitch = ({ name, label }) => (
+    <label className="ofppt-switch">
+      <input
+        type="checkbox"
+        name={name}
+        checked={Boolean(formData[name])}
+        onChange={handleInputChange}
+      />
+      <span>{label}</span>
+    </label>
+  );
+
+  if (submittedIdea) {
+    return (
+      <div className="submission-form-container submit-public-page is-confirmation">
+        <Card>
+          <CardHeader title="Votre idee a ete recue" action={<span className="badge badge-pending">En attente</span>} />
+          <CardBody>
+            <p className="text-secondary mb-4">
+              Conservez ce numero de suivi. Il permet de verifier la decision de l administration. Si votre idee est selectionnee, vous recevrez ensuite un lien securise par WhatsApp.
+            </p>
+            <div className="detail-item mb-6">
+              <span className="detail-label">Numero de suivi</span>
+              <span className="detail-value text-primary font-bold">{submittedIdea.tracking_code}</span>
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              <Button variant="secondary" onClick={() => navigate('/')}>
+                Retour a l accueil
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+  if (isLoadingSubmission) {
+    return <div className="text-center p-12 text-tertiary">Chargement de la soumission...</div>;
+  }
+
+  return (
+    <form className="submission-form-container submit-public-page" onSubmit={handleSubmit}>
+      <div className="ofppt-page-heading">
+        <div>
+          <div className="ofppt-eyebrow">Depot public</div>
+          <h1 className="page-title">{editId ? 'Modifier la soumission' : 'Soumettre une idee de projet'}</h1>
+          <p className="page-subtitle">Depot public traite par l administrateur de l incubateur</p>
+        </div>
+        <Button variant="ghost" onClick={() => navigate(currentUser ? '/dashboard/trainee/my-submissions' : '/')} disabled={isSubmitting}>
+          Annuler
+        </Button>
+      </div>
+
+      <Card className="ofppt-progress-card">
+        <CardBody>
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-sm text-secondary">Progression des champs obligatoires</span>
+            <strong className="text-primary">{completion}%</strong>
+          </div>
+          <div className="w-full h-2 rounded-full bg-surface-hover overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all"
+              style={{ width: `${completion}%` }}
+            />
+          </div>
+        </CardBody>
+      </Card>
+
+      <div className="ofppt-sections-grid">
+        <Card>
+          <CardHeader title="1. Informations personnelles" action={sectionBadge(true)} />
+          <CardBody>
+            <div className="grid-2">
+              <Input label="Nom et prenom" name="full_name" value={formData.full_name} onChange={handleInputChange} error={errors.full_name} required />
+              <Input label="CIN" name="cin" value={formData.cin} onChange={handleInputChange} error={errors.cin} required />
+              <RadioGroup
+                name="gender"
+                label="Sexe"
+                required
+                options={[
+                  { value: 'male', label: 'Homme' },
+                  { value: 'female', label: 'Femme' },
+                ]}
+              />
+              <Input label="Date de naissance" name="birth_date" type="date" value={formData.birth_date} onChange={handleInputChange} error={errors.birth_date} required />
+              <Input label="Lieu de naissance" name="birth_place" value={formData.birth_place} onChange={handleInputChange} error={errors.birth_place} required />
+              <RadioGroup
+                name="family_status"
+                label="Situation familiale"
+                required
+                options={toSelectOptions([
+                  ['single', 'Celibataire'],
+                  ['married', 'Marie(e)'],
+                  ['divorced', 'Divorce(e)'],
+                  ['widowed', 'Veuf(ve)'],
+                ])}
+              />
+              <Input label="Email" name="email" type="email" value={formData.email} onChange={handleInputChange} error={errors.email} required />
+              <Input label="Telephone" name="phone" value={formData.phone} onChange={handleInputChange} error={errors.phone} required />
+            </div>
+            <Textarea label="Adresse actuelle" name="current_address" value={formData.current_address} onChange={handleInputChange} error={errors.current_address} rows={3} required />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="2. Niveau d'instruction" action={sectionBadge(true)} />
+          <CardBody>
+            <RadioGroup
+              name="education_level"
+              label="Niveau d'instruction"
+              required
+              options={toSelectOptions([
+                ['primary', 'Primaire'],
+                ['secondary', 'Secondaire'],
+                ['baccalaureate', 'Bachelier'],
+                ['higher_diploma', 'Diplome superieur'],
+                ['ofppt_diploma', 'Diplome OFPPT'],
+                ['none', 'Aucun'],
+              ])}
+            />
+            <RadioGroup name="has_diploma" label="Avez-vous un diplome ?" options={booleanOptions} required />
+            {formData.has_diploma === true && (
+              <div className="grid-2">
+                <Input label="Specialite du diplome" name="diploma_specialty" value={formData.diploma_specialty} onChange={handleInputChange} error={errors.diploma_specialty} required />
+                <Input label="Annee d'obtention" name="diploma_year" type="number" value={formData.diploma_year} onChange={handleInputChange} error={errors.diploma_year} required />
+                <Input label="Etablissement" name="diploma_establishment" value={formData.diploma_establishment} onChange={handleInputChange} error={errors.diploma_establishment} required />
+              </div>
+            )}
+
+            <RadioGroup name="is_ofppt_graduate" label="Etes-vous laureat de l'OFPPT ?" options={booleanOptions} required />
+            {formData.is_ofppt_graduate === true && (
+              <div className="grid-2">
+                <RadioGroup
+                  name="qualification_level"
+                  label="Niveau de qualification"
+                  required
+                  options={toSelectOptions([
+                    ['TS', 'TS'],
+                    ['T', 'T'],
+                    ['Q', 'Q'],
+                    ['S', 'S'],
+                    ['FQ', 'FQ'],
+                    ['FQ:PIE', 'FQ:PIE'],
+                  ])}
+                />
+                <Input label="Specialite" name="ofppt_specialty" value={formData.ofppt_specialty} onChange={handleInputChange} error={errors.ofppt_specialty} required />
+                <Input label="Annee d'obtention du diplome" name="ofppt_diploma_year" type="number" value={formData.ofppt_diploma_year} onChange={handleInputChange} error={errors.ofppt_diploma_year} required />
+              </div>
+            )}
+
+            <RadioGroup name="is_in_training" label="Etes-vous en formation ?" options={booleanOptions} required />
+            {formData.is_in_training === true && (
+              <div className="grid-2">
+                <RadioGroup
+                  name="training_type"
+                  label="Type de formation"
+                  required
+                  options={toSelectOptions([
+                    ['ofppt_trainee', "Stagiaire de l'OFPPT"],
+                    ['outside_ofppt', 'Hors OFPPT'],
+                    ['FQ:PIE', 'FQ:PIE'],
+                  ])}
+                />
+                <Input label="Specialite" name="training_specialty" value={formData.training_specialty} onChange={handleInputChange} error={errors.training_specialty} required />
+                <Input label="Niveau de formation" name="training_level" value={formData.training_level} onChange={handleInputChange} error={errors.training_level} required />
+                <Input label="Etablissement" name="training_establishment" value={formData.training_establishment} onChange={handleInputChange} error={errors.training_establishment} required />
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="3. Activite actuelle" action={sectionBadge(false)} />
+          <CardBody>
+            <div className="grid-2">
+              <RadioGroup
+                name="current_activity"
+                label="Activite actuelle"
+                options={toSelectOptions([
+                  ['in_training', 'En cours de formation'],
+                  ['job_seeker', "Chercheur d'emploi"],
+                  ['employee', 'Salarie(e) / Employe(e)'],
+                  ['entrepreneur', 'Entrepreneur'],
+                  ['informal', 'Informel'],
+                  ['neet', 'NEET'],
+                  ['other', 'Autres'],
+                ])}
+              />
+              <Input label="Autres, preciser" name="current_activity_other" value={formData.current_activity_other} onChange={handleInputChange} />
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="4. Objet de l'inscription" action={sectionBadge(true)} />
+          <CardBody>
+            <div className="grid-2">
+              <OptionalSwitch name="interested_employability" label="Interesse(e) par l'employabilite" />
+              <OptionalSwitch name="interested_entrepreneurship" label="Interesse(e) par l'entrepreneuriat" />
+              <OptionalSwitch name="has_project_idea" label="Porteur d'idee de projet" />
+              <OptionalSwitch name="has_project" label="Porteur de projet" />
+            </div>
+            {errors.registration_objective && <div className="form-error ofppt-section-error">{errors.registration_objective}</div>}
+            <Textarea label="Autres, preciser" name="registration_objective_other" value={formData.registration_objective_other} onChange={handleInputChange} rows={2} />
+            <Textarea
+              label="Decrire brievement votre idee de projet"
+              name="project_idea_description"
+              value={formData.project_idea_description}
+              onChange={handleInputChange}
+              error={errors.project_idea_description}
+              rows={3}
+              required={formData.has_project_idea}
+            />
+            <Textarea
+              label="Decrire brievement votre projet"
+              name="project_description"
+              value={formData.project_description}
+              onChange={handleInputChange}
+              error={errors.project_description}
+              rows={3}
+              required={formData.has_project}
+            />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="5. Entreprise existante" action={sectionBadge(false)} />
+          <CardBody>
+            <RadioGroup name="has_created_company" label="Avez-vous cree une entreprise ?" options={booleanOptions} />
+            {formData.has_created_company === true && (
+              <div className="grid-2">
+                <RadioGroup
+                  name="legal_status"
+                  label="Statut juridique"
+                  options={toSelectOptions([
+                    ['auto_entrepreneur', 'Auto-entrepreneur'],
+                    ['legal_entity', 'Personne morale'],
+                    ['cooperative', 'Cooperative'],
+                    ['individual', 'Personne physique'],
+                    ['other', 'Autre'],
+                  ])}
+                />
+                <Input label="Autres, preciser" name="legal_status_other" value={formData.legal_status_other} onChange={handleInputChange} />
+                <Input label="Activite de l'entreprise" name="company_activity" value={formData.company_activity} onChange={handleInputChange} />
+                <Input label="Date de creation" name="company_creation_date" type="date" value={formData.company_creation_date} onChange={handleInputChange} />
+                <RadioGroup name="company_is_active" label="Entreprise active ?" options={booleanOptions} />
+                <Input label="Date de debut d'activite" name="activity_start_date" type="date" value={formData.activity_start_date} onChange={handleInputChange} />
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="6. Accompagnement entrepreneurial" action={sectionBadge(false)} />
+          <CardBody>
+            <RadioGroup name="interested_in_support" label="Souhaitez-vous un accompagnement entrepreneurial ?" options={booleanOptions} />
+          </CardBody>
+        </Card>
+      </div>
+
+      <div className="ofppt-form-actions">
+        <Button variant="ghost" onClick={() => navigate(currentUser ? '/dashboard/trainee/my-submissions' : '/')} disabled={isSubmitting}>
+          Annuler
+        </Button>
+        <Button variant="primary" type="submit" isLoading={isSubmitting}>
+          {editId ? 'Enregistrer les modifications' : 'Envoyer mon idee'}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export default NewSubmissionPage;
+
+
+
+

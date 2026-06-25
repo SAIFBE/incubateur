@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { useDataStore } from '../../contexts/DataStoreContext';
+import useImpactMoments from '../impact/useImpactMoments';
 import EventCard from './EventCard';
 import Breadcrumbs from '../../components/ui/Breadcrumbs';
 import './events.css';
 
 export default function PastEventsPage() {
     const { t } = useTranslation();
-    const { pastEvents } = useDataStore();
+    const { moments, loading, error } = useImpactMoments();
 
     return (
         <div className="fade-in">
@@ -24,8 +24,13 @@ export default function PastEventsPage() {
                 ]} />
 
                 <div className="past-events-container">
+                    {loading && <p className="text-center text-secondary">Chargement des Moments d’impact...</p>}
+                    {error && <p className="text-center text-danger-500">{error}</p>}
+                    {!loading && !error && moments.length === 0 && (
+                        <p className="text-center text-secondary">Aucun Moment d’impact publié pour le moment.</p>
+                    )}
                     <div className="past-events-grid">
-                        {pastEvents.map(event => (
+                        {moments.map(event => (
                             <EventCard key={event.id} event={event} />
                         ))}
                     </div>

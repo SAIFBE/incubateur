@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 
 const Select = forwardRef(({ 
   label, 
@@ -11,7 +11,8 @@ const Select = forwardRef(({
   placeholder = 'Sélectionner...',
   ...props 
 }, ref) => {
-  const inputId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = id || generatedId;
 
   return (
     <div className={`form-group ${containerClass}`}>

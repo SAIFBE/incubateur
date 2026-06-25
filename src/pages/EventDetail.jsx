@@ -1,229 +1,193 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, Wifi, Clock, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, Clock, MapPin, Users, Wifi } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDataStore } from '../contexts/DataStoreContext';
 import { useUI } from '../contexts/UIContext';
-import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Card from '../components/ui/Card';
-import Breadcrumbs from '../components/ui/Breadcrumbs';
 import Skeleton from '../components/ui/Skeleton';
+import './EventDetail.css';
 
 const schema = z.object({
-    name: z.string().min(2),
-    email: z.string().email(),
+  name: z.string().min(2),
+  email: z.string().email(),
 });
 
+const getLocalized = (item, field, lang) => {
+  const value = item?.[field];
+  if (typeof value === 'string') return value;
+  return value?.[lang] || value?.fr || value?.en || '';
+};
+
+const eventImages = (event) => {
+  const images = Array.isArray(event?.images) ? event.images.filter(Boolean) : [];
+  if (!images.length && event?.image) return [event.image];
+  return images;
+};
+
 export default function EventDetail() {
-    const { id } = useParams();
-    const { t, i18n } = useTranslation();
-    const lang = i18n.language;
-    const { events, registerForEvent, isRegisteredForEvent } = useDataStore();
-    const { addToast } = useUI();
-    const [loading, setLoading] = useState(true);
-    const [event, setEvent] = useState(null);
-    const [showRegForm, setShowRegForm] = useState(false);
-    const [registered, setRegistered] = useState(false);
+  const { id } = useParams();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr';
+  const locale = lang === 'en' ? 'en-US' : 'fr-FR';
+  const { events, registerForEvent } = useDataStore();
+  const { addToast } = useUI();
+  const [loading, setLoading] = useState(true);
+  const [event, setEvent] = useState(null);
+  const [showRegForm, setShowRegForm] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
-        resolver: zodResolver(schema),
-    });
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(schema),
+  });
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setEvent(events.find(e => e.id === id) || null);
-            setLoading(false);
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [id, events]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setEvent(events.find((item) => String(item.id) === String(id)) || null);
+      setLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [id, events]);
 
-    const onRegister = async (data) => {
-        await new Promise(r => setTimeout(r, 800));
-        registerForEvent(id, data);
-        setRegistered(true);
-        setShowRegForm(false);
-        addToast({
-            type: 'success',
-            title: t('events.registerSuccess'),
-            message: t('events.registerSuccessDesc'),
-        });
+  const details = useMemo(() => {
+    if (!event) return null;
+    const startDate = event.startDate ? new Date(event.startDate) : null;
+    const endDate = event.endDate ? new Date(event.endDate) : null;
+    const validStart = startDate && !Number.isNaN(startDate.getTime());
+    const validEnd = endDate && !Number.isNaN(endDate.getTime());
+    const images = eventImages(event);
+
+    return {
+      title: getLocalized(event, 'title_i18n', lang) || event.title || t('events.defaultTitle'),
+      description: getLocalized(event, 'description_i18n', lang) || event.description || t('events.defaultDescription'),
+      location: getLocalized(event, 'location_i18n', lang) || event.location || 'CMC BMK',
+      category: event.category || t('events.incubatorCategory'),
+      mode: event.mode || 'onsite',
+      status: event.status || 'upcoming',
+      tags: Array.isArray(event.tags) ? event.tags : [event.category].filter(Boolean),
+      images,
+      cover: images[0],
+      dateLabel: validStart ? startDate.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) : t('events.dateSoon'),
+      timeLabel: validStart
+        ? startDate.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) + (validEnd ? ' - ' + endDate.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '')
+        : '09:00',
     };
+  }, [event, lang, locale, t]);
 
-    if (loading) {
-        return (
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                <Skeleton lines={1} className="h-8 w-1/3 mb-8" />
-                <Skeleton lines={1} className="h-12 w-3/4 mb-4" />
-                <Skeleton lines={4} />
-            </div>
-        );
+  const onRegister = async (data) => {
+    try {
+      await registerForEvent(id, data);
+      setRegistered(true);
+      setShowRegForm(false);
+      addToast({ type: 'success', title: t('events.registerSuccess'), message: t('events.registerSuccessDesc') });
+    } catch (error) {
+      addToast({ type: 'error', title: 'Erreur', message: error.response?.data?.message || 'Impossible de confirmer l’inscription.' });
     }
+  };
 
-    if (!event) {
-        return (
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-                <h2 className="text-2xl font-bold text-surface-900 mb-4">{t('common.notFound')}</h2>
-                <Link to="/events"><Button>{t('events.backToList')}</Button></Link>
-            </div>
-        );
-    }
-
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
-
+  if (loading) {
     return (
-        <div className="fade-in pb-20">
-            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-dots opacity-30"></div>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center relative z-10">
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                        <Badge status={event.mode} className="border border-white/10 bg-surface-900/50 backdrop-blur-md">
-                            {event.mode === 'online' ? (
-                                <span className="flex items-center gap-2"><Wifi className="h-4 w-4" /> {t('events.online')}</span>
-                            ) : (
-                                <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {t('events.onsite')}</span>
-                            )}
-                        </Badge>
-                    </div>
-                    <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-                        {event.title_i18n[lang] || event.title_i18n.fr}
-                    </h1>
-                </div>
-            </div>
-
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <Breadcrumbs items={[
-                    { label: t('nav.home'), href: '/' },
-                    { label: t('nav.events'), href: '/events' },
-                    { label: event.title_i18n[lang] || event.title_i18n.fr },
-                ]} />
-
-                <div className="grid lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2">
-                        <div className="card-modern p-8 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-500/5 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2 group-hover:bg-primary-500/10 transition-colors"></div>
-                            
-                            <h3 className="text-2xl font-bold text-white mb-6 relative z-10 flex items-center gap-3">
-                                <span className="w-2 h-6 bg-primary-500 rounded-full"></span>
-                                À propos de l'événement
-                            </h3>
-                            <p className="text-surface-300 leading-relaxed whitespace-pre-line text-lg relative z-10">
-                                {event.description_i18n[lang] || event.description_i18n.fr}
-                            </p>
-                            <div className="flex flex-wrap gap-2 mt-8 relative z-10">
-                                {event.tags.map(tag => (
-                                    <span key={tag} className="text-sm font-medium px-3 py-1.5 rounded-md bg-surface-800 text-surface-300 border border-white/5">#{tag}</span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div className="card-modern p-8 space-y-6">
-                            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                                <span className="w-2 h-5 bg-highlight rounded-full"></span>
-                                Informations
-                            </h3>
-                            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-800/50 border border-white/5 transition-colors hover:bg-surface-800 group">
-                                <div className="w-10 h-10 rounded-lg bg-surface-900 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all">
-                                    <Calendar className="h-5 w-5 text-primary-400 group-hover:text-highlight transition-colors" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-1">{t('events.date')}</div>
-                                    <div className="font-medium text-white">
-                                        {startDate.toLocaleDateString(lang, {
-                                            day: 'numeric', month: 'long', year: 'numeric'
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-800/50 border border-white/5 transition-colors hover:bg-surface-800 group">
-                                <div className="w-10 h-10 rounded-lg bg-surface-900 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all">
-                                    <Clock className="h-5 w-5 text-primary-400 group-hover:text-highlight transition-colors" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-1">{t('events.time')}</div>
-                                    <div className="font-medium text-white">
-                                        {startDate.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}
-                                        {' - '}
-                                        {endDate.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-800/50 border border-white/5 transition-colors hover:bg-surface-800 group">
-                                <div className="w-10 h-10 rounded-lg bg-surface-900 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all">
-                                    <MapPin className="h-5 w-5 text-primary-400 group-hover:text-highlight transition-colors" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-1">{t('events.location')}</div>
-                                    <div className="font-medium text-white">
-                                        {event.location_i18n[lang] || event.location_i18n.fr}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-6 mt-6 border-t border-white/10">
-                                {registered ? (
-                                    <div className="bg-success-500/10 border border-success-500/30 text-success-400 rounded-xl p-4 text-center font-semibold flex items-center justify-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-success-400 animate-pulse"></div>
-                                        {t('events.registered')}
-                                    </div>
-                                ) : showRegForm ? (
-                                    <form onSubmit={handleSubmit(onRegister)} className="space-y-4">
-                                        <h4 className="font-bold text-white mb-2">{t('events.registerTitle')}</h4>
-                                        <div className="space-y-2">
-                                            <input
-                                                className="modern-input py-2.5"
-                                                placeholder={t('events.registerName')}
-                                                {...register('name')}
-                                            />
-                                            {errors.name?.message && <span className="text-error-400 text-xs mt-1 block">{errors.name.message}</span>}
-                                        </div>
-                                        <div className="space-y-2">
-                                            <input
-                                                type="email"
-                                                className="modern-input py-2.5"
-                                                placeholder={t('events.registerEmail')}
-                                                {...register('email')}
-                                            />
-                                            {errors.email?.message && <span className="text-error-400 text-xs mt-1 block">{errors.email.message}</span>}
-                                        </div>
-                                        <div className="flex gap-3 pt-2">
-                                            <button 
-                                                type="submit" 
-                                                disabled={isSubmitting}
-                                                className="modern-btn modern-btn-primary flex-1 py-2.5 text-sm"
-                                            >
-                                                {isSubmitting ? t('admin.loading') : t('events.register')}
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                className="modern-btn py-2.5 px-4 text-sm" 
-                                                onClick={() => setShowRegForm(false)}
-                                            >
-                                                {t('admin.cancel')}
-                                            </button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <button 
-                                        className="modern-btn modern-btn-primary w-full py-4 text-lg flex items-center justify-center gap-2" 
-                                        onClick={() => setShowRegForm(true)}
-                                    >
-                                        <Users className="w-5 h-5" />
-                                        {t('events.register')}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <Skeleton lines={1} className="h-8 w-1/3 mb-8" />
+        <Skeleton lines={1} className="h-12 w-3/4 mb-4" />
+        <Skeleton lines={4} />
+      </div>
     );
+  }
+
+  if (!details) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <h2 className="text-2xl font-bold text-white mb-4">{t('common.notFound')}</h2>
+        <Link to="/events"><Button>{t('events.backToList')}</Button></Link>
+      </div>
+    );
+  }
+
+  return (
+    <main className="evd-page fade-in">
+      <section className="evd-hero">
+        <div className="evd-hero-bg">
+          <div className="evd-hero-gradient" />
+          <div className="evd-hero-dots" />
+        </div>
+        <div className="evd-hero-content">
+          <nav className="evd-breadcrumb" aria-label="Breadcrumb">
+            <Link className="evd-breadcrumb-link" to="/">{t('nav.home')}</Link>
+            <span className="evd-breadcrumb-sep">/</span>
+            <Link className="evd-breadcrumb-link" to="/events">{t('nav.events')}</Link>
+            <span className="evd-breadcrumb-sep">/</span>
+            <span className={'evd-breadcrumb-badge evd-breadcrumb-badge--' + details.mode}>
+              <span className="evd-badge-inner">{details.mode === 'online' ? <Wifi size={13} /> : <MapPin size={13} />}{details.mode === 'online' ? t('events.online') : t('events.onsite')}</span>
+            </span>
+          </nav>
+          <h1 className="evd-hero-title">{details.title}</h1>
+          <p className="evd-hero-sub">{details.description}</p>
+          <div className="evd-hero-actions">
+            <button className="evd-btn-primary" type="button" onClick={() => setShowRegForm(true)}>
+              <Users size={18} />
+              {t('events.register')}
+            </button>
+            <Link to="/events" className="evd-btn-outline"><ArrowLeft size={18} />{t('events.backToList')}</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="evd-stats-section">
+        <div className="evd-stats-inner">
+          <div className="evd-stats-bar">
+            <div className="evd-stat-item"><div className="evd-stat-icon"><Calendar size={18} /></div><div className="evd-stat-info"><span className="evd-stat-label">{t('events.date')}</span><span className="evd-stat-value">{details.dateLabel}</span></div></div>
+            <div className="evd-stat-divider" />
+            <div className="evd-stat-item"><div className="evd-stat-icon"><Clock size={18} /></div><div className="evd-stat-info"><span className="evd-stat-label">{t('events.time')}</span><span className="evd-stat-value">{details.timeLabel}</span></div></div>
+            <div className="evd-stat-divider" />
+            <div className="evd-stat-item"><div className="evd-stat-icon"><MapPin size={18} /></div><div className="evd-stat-info"><span className="evd-stat-label">{t('events.location')}</span><span className="evd-stat-value">{details.location}</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="evd-about-section">
+        <div className="evd-about-inner">
+          <div className="evd-about-grid">
+            <main>
+              <h2 className="evd-section-title">{t('events.aboutEvent')}</h2>
+              <p className="evd-about-text">{details.description}</p>
+
+              {details.tags.length > 0 && (
+                <div className="evd-sidebar-tags">
+                  {details.tags.map((tag) => <span key={tag} className="evd-tag">#{tag}</span>)}
+                </div>
+              )}
+            </main>
+
+            <aside className="evd-sidebar-card">
+              <div className="evd-sidebar-status"><span className={'evd-status-badge evd-status-badge--' + details.status}>{details.status}</span></div>
+
+              {registered ? (
+                <div className="evd-registered-banner"><CheckCircle2 size={17} />{t('events.registered')}</div>
+              ) : showRegForm ? (
+                <form onSubmit={handleSubmit(onRegister)} className="evd-reg-form">
+                  <h3 className="evd-reg-form-title">{t('events.registerTitle')}</h3>
+                  <label className="evd-reg-field"><input className="evd-reg-input" placeholder={t('events.registerName')} {...register('name')} />{errors.name?.message && <span className="evd-reg-error">{errors.name.message}</span>}</label>
+                  <label className="evd-reg-field"><input type="email" className="evd-reg-input" placeholder={t('events.registerEmail')} {...register('email')} />{errors.email?.message && <span className="evd-reg-error">{errors.email.message}</span>}</label>
+                  <div className="evd-reg-actions"><button type="submit" disabled={isSubmitting} className="evd-sidebar-register-btn">{isSubmitting ? t('common.loading') : t('events.register')}</button><button type="button" className="evd-reg-cancel" onClick={() => setShowRegForm(false)}>{t('admin.cancel')}</button></div>
+                </form>
+              ) : (
+                <button type="button" className="evd-sidebar-register-btn" onClick={() => setShowRegForm(true)}><Users size={17} />{t('events.register')}</button>
+              )}
+
+              <div className="evd-sidebar-details">
+                <div className="evd-sidebar-detail-row"><span className="evd-sidebar-detail-label">{t('events.date')}</span><span className="evd-sidebar-detail-value">{details.dateLabel}</span></div>
+                <div className="evd-sidebar-detail-row"><span className="evd-sidebar-detail-label">{t('events.time')}</span><span className="evd-sidebar-detail-value">{details.timeLabel}</span></div>
+                <div className="evd-sidebar-detail-row"><span className="evd-sidebar-detail-label">{t('events.location')}</span><span className="evd-sidebar-detail-value">{details.location}</span></div>
+                <div className="evd-sidebar-detail-row"><span className="evd-sidebar-detail-label">Catégorie</span><span className="evd-sidebar-detail-value">{details.category}</span></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }

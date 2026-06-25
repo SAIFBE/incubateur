@@ -1,0 +1,104 @@
+name: ${COMPOSE_PROJECT_NAME:-incubateur}
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - incubateur_net
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: Dockerfile.production
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+    restart: unless-stopped
+    depends_on:
+      - backend-nginx
+    networks:
+      - incubateur_net
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.production
+    restart: unless-stopped
+    env_file:
+      - ./env/backend.env
+    volumes:
+      - laravel_storage:/var/www/html/storage
+      - laravel_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - incubateur_net
+
+  backend-nginx:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    volumes:
+      - laravel_storage:/var/www/html/storage:ro
+    networks:
+      - incubateur_net
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file:
+      - ./env/backend.env
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - incubateur_net
+
+  phpmyadmin:
+    image: phpmyadmin:5-apache
+    restart: unless-stopped
+    profiles:
+      - tools
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - incubateur_net
+
+networks:
+  incubateur_net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  laravel_storage:
+  laravel_cache:
+  caddy_data:
+  caddy_config:

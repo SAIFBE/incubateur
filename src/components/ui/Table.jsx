@@ -3,8 +3,8 @@ import React from 'react';
 const Table = ({ columns, data, keyField = 'id', onRowClick, className = '' }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="text-center p-8 text-secondary border border-border rounded-lg">
-        Aucune donnée disponible.
+      <div className="empty-state" style={{ minHeight: '120px' }}>
+        <p className="empty-state-desc">Aucune donnée disponible.</p>
       </div>
     );
   }

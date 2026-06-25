@@ -1,0 +1,142 @@
+.gallery-section {
+    padding: 6rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.gallery-bg-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.05), transparent);
+    pointer-events: none;
+}
+
+.gallery-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.gallery-wrapper {
+    position: relative;
+    max-width: 64rem;
+    margin: 0 auto;
+}
+
+.gallery-slideshow {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background-color: var(--color-surface-900, #111);
+}
+
+.gallery-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity 1s ease-in-out;
+}
+
+.gallery-slide.active {
+    opacity: 1;
+    z-index: 10;
+}
+
+.gallery-slide.inactive {
+    opacity: 0;
+    z-index: 0;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 10s linear;
+}
+
+.gallery-slide.active .gallery-image {
+    transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent 50%);
+}
+
+.gallery-nav {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    z-index: 30;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-slideshow:hover .gallery-nav {
+    opacity: 1;
+}
+
+.gallery-btn {
+    padding: 0.75rem;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-btn:hover {
+    background: var(--color-primary-600, #2563eb);
+}
+
+.gallery-dots {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.gallery-dot {
+    transition: all 0.3s ease;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+}
+
+.gallery-dot.active {
+    background-color: var(--color-primary, #3b82f6);
+    width: 2rem;
+    height: 0.5rem;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+}
+
+.gallery-dot.inactive {
+    background-color: rgba(255, 255, 255, 0.4);
+    width: 0.5rem;
+    height: 0.5rem;
+}
+
+.gallery-dot.inactive:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}

@@ -24,9 +24,8 @@ const DashboardLayout = ({ role }) => {
         {/* Overlay for mobile sidebar */}
         {isMobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden" 
             onClick={() => setIsMobileMenuOpen(false)}
-            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 45 }}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 45, backdropFilter: 'blur(4px)' }}
           />
         )}
         
@@ -39,7 +38,7 @@ const DashboardLayout = ({ role }) => {
         <div className="dashboard-main">
           <DashboardHeader onMenuClick={toggleMobileMenu} />
           
-          <main className="dashboard-content animate-fade-in" id="main-content">
+          <main className="dashboard-content fade-in" id="main-content">
             <Outlet />
           </main>
         </div>

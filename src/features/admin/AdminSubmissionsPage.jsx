@@ -1,117 +1,132 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppData } from '../../contexts/AppDataContext';
-import Table from '../../components/ui/Table';
-import Badge from '../../components/ui/Badge';
-import Input from '../../components/ui/Input';
-import Card, { CardBody } from '../../components/ui/Card';
-import Select from '../../components/ui/Select';
-import { USERS } from '../../data/users';
+import api from '../../services/api';
+import Button from '../../components/ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
+
+const statusMap = {
+  pending: { label: 'En attente', className: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' },
+  under_review: { label: 'En etude', className: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+  selected: { label: 'Selectionne', className: 'bg-green-500/20 text-green-300 border-green-500/30' },
+  rejected: { label: 'Refuse', className: 'bg-red-500/20 text-red-300 border-red-500/30' },
+  account_requested: { label: 'Compte demande', className: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+  account_created: { label: 'Compte cree', className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+};
+
+const StatusBadge = ({ status }) => {
+  const item = statusMap[status] || statusMap.pending;
+  return <span className={`px-2 py-1 rounded text-xs font-semibold border ${item.className}`}>{item.label}</span>;
+};
+
+const normalizePage = (payload) => (Array.isArray(payload?.data) ? payload.data : []);
 
 const AdminSubmissionsPage = () => {
-  const { submissions, categories, programs } = useAppData();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const isReadOnlyAdmin = Boolean(currentUser?.isReadOnlyAdmin);
+  const [submissions, setSubmissions] = useState([]);
+  const [filter, setFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [savingId, setSavingId] = useState(null);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [programFilter, setProgramFilter] = useState('all');
+  const fetchSubmissions = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const params = filter === 'all' ? { page: 1 } : { page: 1, status: filter };
+      const first = await api.get('/admin/project-ideas', { params });
+      const firstItems = normalizePage(first.data);
+      const lastPage = first.data?.meta?.last_page || 1;
+      if (lastPage <= 1) {
+        setSubmissions(firstItems);
+        return;
+      }
+      const pages = await Promise.all(Array.from({ length: lastPage - 1 }, (_, index) => api.get('/admin/project-ideas', { params: { ...params, page: index + 2 } })));
+      setSubmissions([...firstItems, ...pages.flatMap((response) => normalizePage(response.data))]);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
 
-  const filteredSubmissions = submissions.filter(sub => {
-    const user = USERS.find(u => u.id === sub.userId);
-    const searchString = `${sub.title} ${user?.fullName} ${user?.cef}`.toLowerCase();
-    
-    const matchesSearch = searchString.includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || sub.status === statusFilter;
-    const matchesCat = categoryFilter === 'all' || sub.category === categoryFilter;
-    const matchesProg = programFilter === 'all' || sub.program === programFilter;
-    
-    return matchesSearch && matchesStatus && matchesCat && matchesProg;
-  }).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
 
-  const columns = [
-    { field: 'title', header: 'Titre du Projet', width: '25%', render: (val) => <span className="font-semibold">{val}</span> },
-    { field: 'userId', header: 'Stagiaire', width: '20%', render: (val) => {
-      const user = USERS.find(u => u.id === val);
-      return (
-        <div>
-          <div className="font-medium">{user?.fullName || 'Inconnu'}</div>
-          <div className="text-xs text-secondary">{user?.cef || '-'}</div>
-        </div>
-      );
-    }},
-    { field: 'category', header: 'Catégorie', width: '15%', render: (val) => categories.find(c => c.id === val)?.name || '-' },
-    { field: 'program', header: 'Filière', width: '15%', render: (val) => programs.find(p => p.id === val)?.name || '-' },
-    { field: 'status', header: 'Statut', width: '15%', render: (val) => <Badge status={val} /> },
-    { field: 'updatedAt', header: 'Date MAJ', width: '10%', render: (val) => <span className="text-xs text-secondary">{new Date(val).toLocaleDateString('fr-FR')}</span> },
-  ];
+  const updateRow = (updated) => {
+    setSubmissions((previous) => previous.map((item) => (item.id === updated.id ? updated : item)));
+  };
+
+  const runAction = async (submission, action) => {
+    setSavingId(`${submission.id}:${action}`);
+    try {
+      const response = action === 'under_review'
+        ? await api.patch(`/admin/project-ideas/${submission.id}/review`, { status: 'under_review', admin_comment: submission.admin_comment || '' })
+        : await api.post(`/admin/project-ideas/${submission.id}/${action}`);
+      updateRow(response.data?.data ?? response.data);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const sortedSubmissions = useMemo(() => [...submissions].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)), [submissions]);
 
   return (
-    <div className="pb-12">
-      <div className="page-header mb-8 bg-surface p-6 rounded-xl border border-glass-border shadow-sm flex items-center gap-4">
-        <div className="w-12 h-12 rounded-lg bg-primary-dim text-primary flex items-center justify-center border border-primary-border">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-        </div>
+    <div className="animate-fade-in">
+      <div className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="page-title mb-1 text-2xl">Toutes les soumissions</h1>
-          <p className="page-subtitle mb-0">Gérez et évaluez les projets des stagiaires</p>
+          <h1 className="text-3xl font-bold mb-2">Gestion des idees publiques</h1>
+          <p className="text-tertiary">Evaluez, selectionnez et gerez les idees envoyees depuis le formulaire public</p>
         </div>
       </div>
 
-      <div className="filter-bar">
-        <Input 
-          placeholder="Rechercher (Titre, Nom, CEF)..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          containerClass="flex-1 min-w-[250px] mb-0"
-        />
-        
-        <Select 
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          containerClass="mb-0 min-w-[150px]"
-          options={[
-            { value: 'all', label: 'Tous les statuts' },
-            { value: 'draft', label: 'Brouillon' },
-            { value: 'submitted', label: 'Soumis' },
-            { value: 'received', label: 'Reçu' },
-            { value: 'under_review', label: 'En Évaluation' },
-            { value: 'requires_changes', label: 'Modifs. Requises' },
-            { value: 'revised', label: 'Révisé' },
-            { value: 'accepted', label: 'Accepté' },
-            { value: 'rejected', label: 'Rejeté' },
-            { value: 'archived', label: 'Archivé' },
-          ]}
-        />
-
-        <Select 
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          containerClass="mb-0 min-w-[150px]"
-          options={[{ value: 'all', label: 'Toutes les catégories' }, ...categories.map(c => ({ value: c.id, label: c.name }))]}
-        />
-
-        <Select 
-          value={programFilter}
-          onChange={(e) => setProgramFilter(e.target.value)}
-          containerClass="mb-0 min-w-[150px]"
-          options={[{ value: 'all', label: 'Toutes les filières' }, ...programs.map(p => ({ value: p.id, label: p.name }))]}
-        />
+      <div className="mb-6 flex gap-2 flex-wrap">
+        <Button variant={filter === 'all' ? 'primary' : 'secondary'} onClick={() => setFilter('all')}>Tous</Button>
+        <Button variant={filter === 'pending' ? 'primary' : 'secondary'} onClick={() => setFilter('pending')}>En attente</Button>
+        <Button variant={filter === 'under_review' ? 'primary' : 'secondary'} onClick={() => setFilter('under_review')}>En etude</Button>
+        <Button variant={filter === 'selected' ? 'primary' : 'secondary'} onClick={() => setFilter('selected')}>Selectionnes</Button>
+        <Button variant={filter === 'rejected' ? 'primary' : 'secondary'} onClick={() => setFilter('rejected')}>Refusees</Button>
       </div>
 
-      <Card>
-        <CardBody style={{ padding: 0 }}>
-          <div className="p-4 border-b border-border flex justify-between items-center bg-surface-hover">
-            <span className="text-sm font-medium">{filteredSubmissions.length} projets trouvés</span>
-          </div>
-          <Table 
-            columns={columns} 
-            data={filteredSubmissions} 
-            keyField="id"
-            onRowClick={(row) => navigate(`/dashboard/admin/submissions/${row.id}`)}
-          />
-        </CardBody>
-      </Card>
+      <div className="bg-surface border border-border rounded-xl overflow-hidden">
+        {loading ? <div className="p-8 text-center text-tertiary">Chargement...</div> : loadError ? <div className="p-8 text-center text-danger">Impossible de charger les soumissions depuis Laravel.</div> : (
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border bg-black/20 text-secondary text-sm">
+                <th className="p-4 font-semibold">Candidat</th>
+                <th className="p-4 font-semibold">Email</th>
+                <th className="p-4 font-semibold">Telephone</th>
+                <th className="p-4 font-semibold">Date</th>
+                <th className="p-4 font-semibold">Statut</th>
+                <th className="p-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedSubmissions.length > 0 ? sortedSubmissions.map((submission) => (
+                <tr key={submission.id} className="border-b border-border/50 hover:bg-white/5 transition-colors">
+                  <td className="p-4 font-medium text-white">{submission.full_name || submission.user?.name || 'Non renseigne'}</td>
+                  <td className="p-4 text-secondary">{submission.email || submission.user?.email || 'Non renseigne'}</td>
+                  <td className="p-4 text-secondary">{submission.phone || 'Non renseigne'}</td>
+                  <td className="p-4 text-secondary">{submission.created_at ? new Date(submission.created_at).toLocaleDateString('fr-FR') : 'Non renseigne'}</td>
+                  <td className="p-4"><StatusBadge status={submission.status} /></td>
+                  <td className="p-4 text-right">
+                    <div className="flex justify-end gap-2 flex-wrap">
+                      {!isReadOnlyAdmin && (
+                        <>
+                          {['pending', 'under_review'].includes(submission.status) && <Button variant="secondary" size="sm" onClick={() => runAction(submission, 'under_review')} isLoading={savingId === `${submission.id}:under_review`}>Etude</Button>}
+                          {!['account_requested', 'account_created'].includes(submission.status) && <Button variant="secondary" size="sm" onClick={() => runAction(submission, 'select')} isLoading={savingId === `${submission.id}:select`}>Selectionner</Button>}
+                          {submission.status !== 'account_created' && <Button variant="danger" size="sm" onClick={() => runAction(submission, 'reject')} disabled={Boolean(savingId)}>Refuser</Button>}
+                        </>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/admin/submissions/${submission.id}`)}>Ouvrir</Button>
+                    </div>
+                  </td>
+                </tr>
+              )) : <tr><td colSpan="6" className="p-8 text-center text-tertiary">Aucune idee trouvee.</td></tr>}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 };

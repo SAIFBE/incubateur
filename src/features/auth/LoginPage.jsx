@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import BrandLogo from '../../components/ui/BrandLogo';
 import './auth.css';
 
-// Simple inline SVGs for the UI
 const IconUser = () => (
   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -16,8 +16,8 @@ const IconShield = () => (
   </svg>
 );
 
-const LoginPage = () => {
-  const [role, setRole] = useState('trainee'); // 'trainee' | 'admin'
+const LoginPage = ({ mode = 'trainee' }) => {
+  const role = mode === 'admin' ? 'admin' : 'trainee';
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -27,113 +27,107 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || (role === 'admin' ? '/dashboard/admin' : '/dashboard/trainee');
+  const defaultDestination = role === 'admin' ? '/dashboard/admin' : '/dashboard/trainee';
+  const from = location.state?.from?.pathname || defaultDestination;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (!identifier || !password) {
       setError('Veuillez remplir tous les champs obligatoires.');
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       const result = await login(identifier, password);
-      
+
       if (result.success) {
         let destination = from;
-        
-        // Prevent redirecting trainees to admin routes and vice versa
+
         if (result.user.role === 'trainee' && typeof destination === 'string' && destination.includes('/admin')) {
           destination = '/dashboard/trainee';
         } else if (result.user.role === 'admin' && typeof destination === 'string' && destination.includes('/trainee')) {
           destination = '/dashboard/admin';
         }
 
-        if (destination && destination !== '/' && destination !== '/login') {
-             navigate(destination, { replace: true });
-        } else {
-            if (result.user.role === 'admin') {
-              navigate('/dashboard/admin', { replace: true });
-            } else {
-              navigate('/dashboard/trainee', { replace: true });
-            }
+        if (result.user.role === 'admin' && destination === '/zinebadmin') {
+          destination = '/dashboard/admin';
         }
+
+        if (result.user.role === 'trainee' && destination === '/login') {
+          destination = '/dashboard/trainee';
+        }
+
+        navigate(destination && destination !== '/' ? destination : defaultDestination, { replace: true });
       } else {
         setError(result.message || 'Identifiants incorrects');
       }
-    } catch (err) {
-      setError('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
+    } catch {
+      setError('Une erreur est survenue lors de la connexion. Veuillez rÃ©essayer.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const isAdmin = role === 'admin';
+
   return (
     <div className={`auth-page-root ${role}-theme`}>
       <div className="auth-split-container">
-        
-        {/* LEFT: Branding Visual Panel */}
         <div className="auth-visual-panel">
           <div className={`auth-visual-bg ${role}-theme`}></div>
           <div className="auth-visual-grid"></div>
-          
+
           <div className="auth-visual-logo">
-            <div className="logo-cube"></div>
-            CMC Incubateur
+            <BrandLogo className="brand-logo-auth-visual" />
           </div>
 
           <div className="auth-visual-content">
             <h1 className="auth-visual-title">
-              {role === 'trainee' ? 'Transformez vos idées en startups.' : 'Pilotez l\'innovation de demain.'}
+              {isAdmin ? "Pilotez l'innovation de demain." : 'Transformez vos idÃ©es en startups.'}
             </h1>
             <p className="auth-visual-desc">
-              {role === 'trainee' 
-                ? 'Accédez à votre espace stagiaire pour soumettre vos projets, suivre vos avancements, et collaborer avec vos mentors dans un environnement de pointe.'
-                : 'Accédez au centre de contrôle administratif. Supervisez les soumissions, gérez les workflows et propulsez les meilleurs projets. Accès sécurisé.'
-              }
+              {isAdmin
+                ? 'AccÃ¨s rÃ©servÃ© Ã  lâ€™administration. Supervisez les soumissions, les comptes et le suivi des projets acceptÃ©s.'
+                : 'AccÃ©dez Ã  votre espace stagiaire pour suivre votre projet, vos avancements et vos Ã©changes avec lâ€™incubateur.'}
             </p>
           </div>
         </div>
 
-        {/* RIGHT: Interactive Form Panel */}
         <div className="auth-form-panel">
           <div className="auth-form-container">
-            
-            {/* Mobile-only header (hidden on desktop split) */}
             <div className="auth-header-mobile">
-              <div className="logo-cube" style={{ width: 48, height: 48 }}></div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>CMC Incubateur</h2>
+              <BrandLogo className="brand-logo-auth-mobile" />
             </div>
-            
-            {/* Role Switcher */}
-            <div className="auth-tabs">
-              <button 
+
+            <div className="auth-tabs" aria-label="Choix du type de connexion">
+              <button
                 type="button"
-                className={`auth-tab ${role === 'trainee' ? 'active trainee' : ''}`}
-                onClick={() => { setRole('trainee'); setError(''); setIdentifier(''); setPassword(''); }}
+                className={`auth-tab trainee ${!isAdmin ? 'active' : ''}`}
+                aria-current={!isAdmin ? 'page' : undefined}
+                onClick={() => navigate('/login', { state: location.state })}
               >
                 <IconUser /> Stagiaire
               </button>
-              <button 
+              <button
                 type="button"
-                className={`auth-tab ${role === 'admin' ? 'active admin' : ''}`}
-                onClick={() => { setRole('admin'); setError(''); setIdentifier(''); setPassword(''); }}
+                className={`auth-tab admin ${isAdmin ? 'active' : ''}`}
+                aria-current={isAdmin ? 'page' : undefined}
+                onClick={() => navigate('/zinebadmin', { state: location.state })}
               >
                 <IconShield /> Administration
               </button>
             </div>
 
-            {/* Login Box */}
             <div className="auth-form-body">
               <h2 className="auth-form-title">
-                {role === 'trainee' ? 'Bienvenue dans votre espace' : 'Accès Administrateur'}
+                {isAdmin ? 'AccÃ¨s Administrateur' : 'Bienvenue dans votre espace'}
               </h2>
               <p className="auth-form-subtitle">
-                {role === 'trainee' ? 'Connectez-vous avec votre Code CEF.' : 'Veuillez vous authentifier pour continuer.'}
+                {isAdmin ? 'Veuillez vous authentifier pour continuer.' : 'Connectez-vous avec votre Code CEF.'}
               </p>
 
               {error && (
@@ -148,17 +142,18 @@ const LoginPage = () => {
               <form onSubmit={handleSubmit}>
                 <div className="auth-input-group">
                   <label htmlFor="identifier" className="auth-label">
-                    {role === 'trainee' ? 'Code CEF (Identifiant unique)' : 'Adresse Email Professionnelle'}
+                    {isAdmin ? 'Adresse Email Professionnelle' : 'Code CEF (Identifiant unique)'}
                   </label>
                   <input
                     id="identifier"
-                    type={role === 'trainee' ? 'text' : 'email'}
+                    type={isAdmin ? 'email' : 'text'}
                     className="auth-input"
-                    placeholder={role === 'trainee' ? 'Ex: 20240001' : 'admin@cmcbmk.ma'}
+                    placeholder={isAdmin ? 'admin@cmc.com' : 'Ex: 20240001'}
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     disabled={isLoading}
                     dir="ltr"
+                    autoComplete={isAdmin ? 'email' : 'username'}
                   />
                 </div>
 
@@ -168,11 +163,12 @@ const LoginPage = () => {
                     id="password"
                     type="password"
                     className="auth-input"
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                     dir="ltr"
+                    autoComplete="current-password"
                   />
                 </div>
 
@@ -190,7 +186,6 @@ const LoginPage = () => {
             </a>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const UIContext = createContext(null);
 
@@ -6,6 +6,17 @@ export function UIProvider({ children }) {
     const [toasts, setToasts] = useState([]);
     const [modal, setModal] = useState(null);
     const [adminUser, setAdminUser] = useState(null);
+    const [theme, setThemeState] = useState(() => {
+        if (typeof window === 'undefined') return 'dark';
+        return localStorage.getItem('cmc_incubator_theme') || 'dark';
+    });
+
+    useEffect(() => {
+        const nextTheme = theme === 'light' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = nextTheme;
+        document.documentElement.style.colorScheme = nextTheme;
+        localStorage.setItem('cmc_incubator_theme', nextTheme);
+    }, [theme]);
 
     const addToast = useCallback((toast) => {
         const id = Date.now();
@@ -37,6 +48,14 @@ export function UIProvider({ children }) {
         setAdminUser(null);
     }, []);
 
+    const setTheme = useCallback((nextTheme) => {
+        setThemeState(nextTheme === 'light' ? 'light' : 'dark');
+    }, []);
+
+    const toggleTheme = useCallback(() => {
+        setThemeState((current) => (current === 'light' ? 'dark' : 'light'));
+    }, []);
+
     return (
         <UIContext.Provider
             value={{
@@ -49,6 +68,9 @@ export function UIProvider({ children }) {
                 adminUser,
                 loginAdmin,
                 logoutAdmin,
+                theme,
+                setTheme,
+                toggleTheme,
             }}
         >
             {children}

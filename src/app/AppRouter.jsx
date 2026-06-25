@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts & Guards
@@ -12,7 +12,6 @@ import UnauthorizedPage from '../features/shared/UnauthorizedPage';
 
 // Trainee
 import TraineeDashboardPage from '../features/trainee/TraineeDashboardPage';
-import NewSubmissionPage from '../features/trainee/NewSubmissionPage';
 import MySubmissionsPage from '../features/trainee/MySubmissionsPage';
 import SubmissionDetailPage from '../features/trainee/SubmissionDetailPage';
 
@@ -20,6 +19,9 @@ import SubmissionDetailPage from '../features/trainee/SubmissionDetailPage';
 import AdminDashboardPage from '../features/admin/AdminDashboardPage';
 import AdminSubmissionsPage from '../features/admin/AdminSubmissionsPage';
 import AdminSubmissionDetailPage from '../features/admin/AdminSubmissionDetailPage';
+import AdminAccountRequestsPage from '../features/admin/AdminAccountRequestsPage';
+import AdminAcceptedProjectsPage from '../features/admin/AdminAcceptedProjectsPage';
+import AdminAcceptedProjectDetailPage from '../features/admin/AdminAcceptedProjectDetailPage';
 import AdminStatisticsPage from '../features/admin/AdminStatisticsPage';
 
 // Admin CMS
@@ -38,7 +40,8 @@ const AppRouter = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage mode="trainee" />} />
+      <Route path="/zinebadmin" element={<LoginPage mode="admin" />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       
       {/* Root redirect to login or dashboard based on auth */}
@@ -57,7 +60,7 @@ const AppRouter = () => {
         }
       >
         <Route index element={<TraineeDashboardPage />} />
-        <Route path="new-submission" element={<NewSubmissionPage />} />
+        <Route path="new-submission" element={<Navigate to="/dashboard/trainee/my-submissions" replace />} />
         <Route path="my-submissions" element={<MySubmissionsPage />} />
         <Route path="my-submissions/:id" element={<SubmissionDetailPage />} />
       </Route>
@@ -76,6 +79,9 @@ const AppRouter = () => {
         <Route index element={<AdminDashboardPage />} />
         <Route path="submissions" element={<AdminSubmissionsPage />} />
         <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
+        <Route path="account-requests" element={<AdminAccountRequestsPage />} />
+        <Route path="accepted-projects" element={<AdminAcceptedProjectsPage />} />
+        <Route path="accepted-projects/:id" element={<AdminAcceptedProjectDetailPage />} />
         
         {/* Admin CMS Routes */}
         <Route path="events" element={<AdminEventsPage />} />
@@ -100,3 +106,5 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
+
+

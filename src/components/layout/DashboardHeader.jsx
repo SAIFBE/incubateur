@@ -1,6 +1,6 @@
-import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+﻿import React from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useUI } from '../../contexts/UIContext';
 
 const IconMenu = () => (
   <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -21,27 +21,46 @@ const IconGlobe = () => (
 );
 
 const DashboardHeader = ({ onMenuClick }) => {
-  const { currentUser, logout } = useAuth();
-  const navigate = useNavigate();
+  const { theme, setTheme } = useUI();
 
   return (
     <header className="dashboard-header">
       <div className="header-left">
-        <button 
-          className="mobile-menu-btn" 
+        <button
+          className="mobile-menu-btn"
           onClick={onMenuClick}
-          aria-label="Toggle Menu"
+          aria-label="Ouvrir le menu"
         >
           <IconMenu />
         </button>
-        {/* We can inject dynamic breadcrumbs or page titles here if needed via Context/Props */}
       </div>
 
       <div className="header-actions">
-        <button 
+        <div className="theme-switcher" aria-label="Mode d'affichage">
+          <button
+            type="button"
+            className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+            onClick={() => setTheme('light')}
+            aria-pressed={theme === 'light'}
+            title="Mode clair"
+          >
+            <Sun size={17} />
+          </button>
+          <button
+            type="button"
+            className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+            onClick={() => setTheme('dark')}
+            aria-pressed={theme === 'dark'}
+            title="Mode sombre"
+          >
+            <Moon size={17} />
+          </button>
+        </div>
+
+        <button
           className="header-btn"
           aria-label="Notifications"
-          title="Notifications (Mock)"
+          title="Notifications"
         >
           <IconBell />
           <span className="header-badge"></span>

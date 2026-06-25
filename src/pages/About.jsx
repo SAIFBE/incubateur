@@ -1,111 +1,156 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Target, Eye, Heart, Users, Lightbulb, Award, Globe2 } from 'lucide-react';
-import Card from '../components/ui/Card';
-import Breadcrumbs from '../components/ui/Breadcrumbs';
+import { ArrowRight, BookOpen, Building2, Eye, Network, Rocket, ShieldCheck, Sparkles } from 'lucide-react';
+import './About.css';
 
 export default function About() {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
-    const values = [
-        { icon: Lightbulb, label: t('about.value1'), color: 'text-primary-400 bg-primary-500/10 border-primary-500/20 shadow-[0_0_15px_rgba(79,70,229,0.2)]' },
-        { icon: Users, label: t('about.value2'), color: 'text-highlight bg-highlight/10 border-highlight/20 shadow-[0_0_15px_rgba(14,165,233,0.2)]' },
-        { icon: Award, label: t('about.value3'), color: 'text-success-400 bg-success-500/10 border-success-500/20 shadow-[0_0_15px_rgba(34,197,94,0.2)]' },
-        { icon: Globe2, label: t('about.value4'), color: 'text-warning-400 bg-warning-500/10 border-warning-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]' },
-    ];
+  const advantages = [
+    { icon: ShieldCheck, title: t('about.adv1Title'), description: t('about.adv1Desc'), tone: 'green' },
+    { icon: BookOpen, title: t('about.adv2Title'), description: t('about.adv2Desc'), tone: 'blue' },
+    { icon: Network, title: t('about.adv3Title'), description: t('about.adv3Desc'), tone: 'orange' },
+    { icon: Building2, title: t('about.adv4Title'), description: t('about.adv4Desc'), tone: 'green' },
+  ];
 
-    const team = [
-        { name: 'Dr. Karim El Ouafi', role: 'Directeur', initials: 'KE' },
-        { name: 'Amina Belhaj', role: 'Coordinatrice', initials: 'AB' },
-        { name: 'Youssef Rahmani', role: 'Mentor Tech', initials: 'YR' },
-        { name: 'Fatima Zahra Alami', role: 'Responsable Formation', initials: 'FA' },
-    ];
+  const phases = [
+    { phase: t('about.app1Phase'), title: t('about.app1Title'), description: t('about.app1Desc'), tone: 'green' },
+    { phase: t('about.app2Phase'), title: t('about.app2Title'), description: t('about.app2Desc'), tone: 'blue' },
+    { phase: t('about.app3Phase'), title: t('about.app3Title'), description: t('about.app3Desc'), tone: 'orange' },
+  ];
 
-    return (
-        <div className="fade-in pb-20">
-            {/* Header */}
-            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-dots opacity-30"></div>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('about.title')}</h1>
-                    <p className="text-surface-400 text-lg max-w-2xl mx-auto">{t('about.missionText').substring(0, 100)}...</p>
-                </div>
-            </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-                <Breadcrumbs items={[
-                    { label: t('nav.home'), href: '/' },
-                    { label: t('nav.about') },
-                ]} />
+  const stats = [
+    { value: '15', label: t('about.statStartups'), tone: 'green' },
+    { value: '390', label: t('about.statCapital'), tone: 'blue' },
+    { value: '131', label: t('about.statMentors'), tone: 'orange' },
+  ];
 
-                {/* Mission */}
-                <section className="mb-20">
-                    <div className="grid md:grid-cols-2 gap-10">
-                        <div className="card-modern p-8 md:p-12 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-primary-500/20 transition-colors"></div>
-                            
-                            <div className="flex items-center gap-4 mb-6 relative z-10">
-                                <div className="w-14 h-14 bg-bg-card border border-white/10 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:border-primary-500/50 transition-all duration-300">
-                                    <Target className="h-7 w-7 text-primary-400 group-hover:text-highlight transition-colors" />
-                                </div>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{t('about.mission')}</h2>
-                            </div>
-                            <p className="text-surface-400 leading-relaxed text-lg relative z-10">{t('about.missionText')}</p>
-                        </div>
-                        <div className="card-modern p-8 md:p-12 relative overflow-hidden group">
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-highlight/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-highlight/20 transition-colors"></div>
-                            
-                            <div className="flex items-center gap-4 mb-6 relative z-10">
-                                <div className="w-14 h-14 bg-bg-card border border-white/10 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:border-highlight/50 transition-all duration-300">
-                                    <Eye className="h-7 w-7 text-highlight group-hover:text-primary-400 transition-colors" />
-                                </div>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{t('about.vision')}</h2>
-                            </div>
-                            <p className="text-surface-400 leading-relaxed text-lg relative z-10">{t('about.visionText')}</p>
-                        </div>
-                    </div>
-                </section>
+  const teamProfiles = [
+    {
+      image: 'about/responsable-incubateur.jpg',
+      badge: t('about.responsibleBadge'),
+      name: t('about.responsibleName'),
+      role: t('about.responsibleRole'),
+      description: t('about.responsibleDescription'),
+    },
+    {
+      image: 'about/incup2.jpg',
+      badge: t('about.profileEntrepreneurshipBadge'),
+      name: t('about.profileEntrepreneurshipName'),
+      role: t('about.profileEntrepreneurshipRole'),
+      description: t('about.profileEntrepreneurshipDescription'),
+    },
+    {
+      image: 'about/incup3.jpg',
+      badge: t('about.profileFablabBadge'),
+      name: t('about.profileFablabName'),
+      role: t('about.profileFablabRole'),
+      description: t('about.profileFablabDescription'),
+    },
+  ];
 
-                {/* Values */}
-                <section className="mb-20">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-white tracking-tight inline-block relative">
-                            {t('about.values')}
-                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-glow rounded-full"></div>
-                        </h2>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {values.map((val, i) => (
-                            <div key={i} className="card-modern text-center p-8 group hover:-translate-y-2 transition-transform duration-300">
-                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 border transition-all duration-300 group-hover:scale-110 ${val.color}`}>
-                                    <val.icon className="h-8 w-8" />
-                                </div>
-                                <h3 className="text-lg font-bold text-white tracking-wide group-hover:text-highlight transition-colors">{val.label}</h3>
-                            </div>
-                        ))}
-                    </div>
-                </section>
 
-                {/* Team */}
-                <section>
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-white tracking-tight mb-4">{t('about.team')}</h2>
-                        <p className="text-surface-400 text-lg max-w-2xl mx-auto">{t('about.teamDesc')}</p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                        {team.map((member, i) => (
-                            <div key={i} className="card-modern text-center p-8 group hover:border-primary-500/50 transition-colors duration-300 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 blur-[50px] rounded-full pointer-events-none"></div>
-                                
-                                <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-2xl shadow-[0_0_20px_rgba(79,70,229,0.3)] group-hover:scale-110 transition-transform duration-300 border-2 border-white/10 group-hover:border-white/30">
-                                    {member.initials}
-                                </div>
-                                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-primary-400 transition-colors">{member.name}</h3>
-                                <p className="text-surface-400 text-sm font-medium">{member.role}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            </div>
+  return (
+    <main className="about-shell">
+      <section className="about-hero">
+        <div className="about-hero-orbit" />
+        <h1>{t('about.title')}</h1>
+        <p>{t('about.subtitle')}</p>
+        <a href="#mission" className="about-hero-btn">{t('about.discoverMission')}</a>
+      </section>
+
+      <section id="mission" className="about-story-section">
+        <div className="about-story-copy">
+          <span>{t('about.section1Tag')}</span>
+          <h2>{t('about.section1Title')}</h2>
+          <p>{t('about.section1Text1')}</p>
+          <p>{t('about.section1Text2')}</p>
         </div>
-    );
+        <div className="about-story-media">
+          <img src={`${import.meta.env.BASE_URL}events/Image2.jpeg`} alt={t('about.storyImageAlt')} />
+        </div>
+      </section>
+
+      <section className="about-mission-grid">
+        <article>
+          <div><Rocket size={22} /></div>
+          <h3>{t('about.mission')}</h3>
+          <p>{t('about.missionText')}</p>
+        </article>
+        <article>
+          <div><Eye size={22} /></div>
+          <h3>{t('about.vision')}</h3>
+          <p>{t('about.visionText')}</p>
+        </article>
+      </section>
+
+      <section className="about-advantage-section">
+        <header>
+          <h2>{t('about.advantageTitle')}</h2>
+          <p>{t('about.advantageSub')}</p>
+        </header>
+        <div className="about-advantage-grid">
+          {advantages.map(({ icon: Icon, title, description, tone }) => (
+            <article key={title} className={`about-mini-card ${tone}`}>
+              <Icon size={18} />
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-approach-band">
+        <h2>{t('about.approachTitle')}</h2>
+        <div className="about-phase-grid">
+          {phases.map((item) => (
+            <article key={item.phase} className={item.tone}>
+              <span>{item.phase}</span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-stats-grid">
+        {stats.map((stat) => (
+          <article key={stat.label} className={stat.tone}>
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </article>
+        ))}
+      </section>
+
+      <section className="about-team-section">
+        <h2>{t('about.teamTitle')}</h2>
+        <div className="about-responsible-list">
+          {teamProfiles.map((profile) => (
+            <article className="about-responsible-card" key={profile.image}>
+              <img
+                src={`${import.meta.env.BASE_URL}${profile.image}`}
+                alt={profile.name}
+              />
+              <div>
+                <span>{profile.badge}</span>
+                <h3>{profile.name}</h3>
+                <p>{profile.role}</p>
+                <small>{profile.description}</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-final-cta">
+        <Sparkles size={22} />
+        <h2>{t('about.ctaTitle')}</h2>
+        <p>{t('about.ctaSub')}</p>
+        <Link to="/submit">{t('about.ctaBtn')} <ArrowRight size={16} /></Link>
+      </section>
+    </main>
+  );
 }
+
+

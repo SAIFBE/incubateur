@@ -1,164 +1,231 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, MapPin, Phone, Clock, Send, CheckCircle } from 'lucide-react';
+import { MapPin, Clock, Send, CheckCircle, Handshake, Rocket, Monitor, ArrowRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
-import Breadcrumbs from '../components/ui/Breadcrumbs';
+import { Link } from 'react-router-dom';
 import { useUI } from '../contexts/UIContext';
+import api from '../services/api';
+import './Contact.css';
 
-const schema = z.object({
-    name: z.string().min(2),
-    email: z.string().email(),
-    subject: z.string().min(3),
-    message: z.string().min(10),
+const createSchema = (t) => z.object({
+    name: z.string().min(2, { message: t('contact.validation.name') }),
+    email: z.string().email({ message: t('contact.validation.email') }),
+    subject: z.string().min(3, { message: t('contact.validation.subject') }),
+    message: z.string().min(10, { message: t('contact.validation.message') }),
 });
 
 export default function Contact() {
     const { t } = useTranslation();
     const { addToast } = useUI();
     const [sent, setSent] = useState(false);
+    const schema = useMemo(() => createSchema(t), [t]);
     const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm({
         resolver: zodResolver(schema),
     });
 
-    const onSubmit = async () => {
-        await new Promise(r => setTimeout(r, 1000));
+    const onSubmit = async (data) => {
+        await api.post('/contact', data);
         addToast({ type: 'success', title: t('contact.success'), message: t('contact.successDesc') });
         setSent(true);
         reset();
     };
 
-    const contactInfo = [
-        { icon: MapPin, label: t('contact.info.address') },
-        { icon: Phone, label: t('contact.info.phone') },
-        { icon: Mail, label: t('contact.info.email') },
-        { icon: Clock, label: t('contact.info.hours') },
+    const supportCards = [
+        {
+            icon: Handshake,
+            title: t('contact.support.partnershipTitle'),
+            desc: t('contact.support.partnershipDesc'),
+            color: 'purple',
+        },
+        {
+            icon: Rocket,
+            title: t('contact.support.startupTitle'),
+            desc: t('contact.support.startupDesc'),
+            color: 'blue',
+        },
+        {
+            icon: Monitor,
+            title: t('contact.support.technicalTitle'),
+            desc: t('contact.support.technicalDesc'),
+            color: 'cyan',
+        },
     ];
 
     return (
-        <div className="fade-in pb-20">
-            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-dots opacity-30"></div>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('contact.title')}</h1>
-                    <p className="text-surface-400 text-lg max-w-2xl mx-auto">{t('contact.subtitle')}</p>
+        <div className="contact-page fade-in">
+            <section className="contact-hero">
+                <div className="contact-hero-bg">
+                    <div className="contact-hero-gradient"></div>
+                    <div className="contact-hero-dots"></div>
+                    <div className="contact-hero-glow"></div>
                 </div>
-            </div>
+                <div className="contact-hero-content">
+                    <h1 className="contact-hero-title">
+                        {t('contact.heroTitleLine1')}<br />
+                        <span className="contact-hero-highlight">{t('contact.heroTitleHighlight')}</span> {t('contact.heroTitleLine2')}
+                    </h1>
+                    <p className="contact-hero-sub">{t('contact.heroSubtitle')}</p>
+                </div>
+            </section>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <Breadcrumbs items={[
-                    { label: t('nav.home'), href: '/' },
-                    { label: t('nav.contact') },
-                ]} />
+            <section className="contact-main">
+                <div className="contact-main-inner">
+                    <div className="contact-grid">
+                        <div className="contact-info-col">
+                            <h2 className="contact-info-title">{t('contact.infoTitle')}</h2>
+                            <p className="contact-info-sub">{t('contact.infoSub')}</p>
 
-                <div className="grid lg:grid-cols-3 gap-10">
-                    {/* Contact Info */}
-                    <div className="space-y-6 lg:col-span-1">
-                        <div>
-                            <h2 className="text-2xl font-bold text-white mb-2">{t('contact.info.title')}</h2>
-                            <p className="text-surface-400 mb-6 block">Nos équipes sont à votre disposition pour répondre à toutes vos questions.</p>
-                        </div>
-                        <div className="space-y-4">
-                            {contactInfo.map((item, i) => (
-                                <div key={i} className="card-modern flex items-center gap-5 p-6 group hover:border-primary-500/50 transition-colors duration-300">
-                                    <div className="w-12 h-12 bg-surface-800 border border-white/5 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:bg-primary-500/20 group-hover:border-primary-500/30 transition-all duration-300 shadow-lg">
-                                        <item.icon className="h-6 w-6 text-primary-400 group-hover:text-highlight transition-colors" />
+                            <div className="contact-details">
+
+                                <div className="contact-detail-item">
+                                    <div className="contact-detail-icon">
+                                        <MapPin className="w-5 h-5" />
                                     </div>
-                                    <span className="text-surface-300 font-medium group-hover:text-white transition-colors">{item.label}</span>
+                                    <div className="contact-detail-text">
+                                        <span className="contact-detail-label">{t('contact.addressLabel')}</span>
+                                        <span className="contact-detail-value">{t('contact.info.address')}</span>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    {/* Contact Form */}
-                    <div className="lg:col-span-2">
-                        {sent ? (
-                            <div className="card-modern text-center py-20 flex flex-col items-center justify-center">
-                                <div className="relative mb-6">
-                                    <div className="absolute inset-0 bg-success-500/20 blur-xl rounded-full"></div>
-                                    <CheckCircle className="h-20 w-20 text-success-400 relative z-10 animate-[scale-in_0.5s_ease-out]" />
+                                <div className="contact-detail-item">
+                                    <div className="contact-detail-icon">
+                                        <Clock className="w-5 h-5" />
+                                    </div>
+                                    <div className="contact-detail-text">
+                                        <span className="contact-detail-label">{t('contact.hoursLabel')}</span>
+                                        <span className="contact-detail-value">{t('contact.info.hours')}</span>
+                                    </div>
                                 </div>
-                                <h3 className="text-2xl font-bold text-white mb-3">{t('contact.success')}</h3>
-                                <p className="text-surface-400 text-lg mb-8 max-w-md mx-auto">{t('contact.successDesc')}</p>
-                                <button className="modern-btn modern-btn-primary" onClick={() => setSent(false)}>
-                                    {t('contact.send')} nouveau message
-                                </button>
                             </div>
-                        ) : (
-                            <div className="card-modern p-8 md:p-12 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-highlight/5 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-                                
-                                <h3 className="text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
-                                    <span className="w-2 h-6 bg-primary-500 rounded-full"></span>
-                                    Envoyez-nous un message
-                                </h3>
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
-                                    <div className="grid sm:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-surface-300">{t('contact.name')}</label>
-                                            <input
-                                                className="modern-input"
-                                                {...register('name')}
-                                            />
-                                            {errors.name?.message && <span className="text-error-400 text-xs mt-1 block">{errors.name.message}</span>}
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-surface-300">{t('contact.email')}</label>
-                                            <input
-                                                type="email"
-                                                className="modern-input"
-                                                {...register('email')}
-                                            />
-                                            {errors.email?.message && <span className="text-error-400 text-xs mt-1 block">{errors.email.message}</span>}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-surface-300">{t('contact.subject')}</label>
-                                        <input
-                                            className="modern-input"
-                                            {...register('subject')}
-                                        />
-                                        {errors.subject?.message && <span className="text-error-400 text-xs mt-1 block">{errors.subject.message}</span>}
-                                    </div>
+                        </div>
 
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-surface-300">{t('contact.message')}</label>
-                                        <textarea
-                                            className="modern-input min-h-[150px] resize-y"
-                                            placeholder={t('contact.messagePlaceholder')}
-                                            {...register('message')}
-                                        />
-                                        {errors.message?.message && <span className="text-error-400 text-xs mt-1 block">{errors.message.message}</span>}
-                                    </div>
-
-                                    <button 
-                                        type="submit" 
-                                        disabled={isSubmitting}
-                                        className="modern-btn modern-btn-primary w-full flex justify-center items-center gap-2 py-4 text-lg mt-8"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                {t('contact.sending')}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Send className="w-5 h-5 mr-2" />
-                                                {t('contact.send')}
-                                            </>
-                                        )}
+                        <div className="contact-form-col">
+                            {sent ? (
+                                <div className="contact-form-card contact-success-state">
+                                    <div className="contact-success-glow"></div>
+                                    <CheckCircle className="contact-success-icon" />
+                                    <h3 className="contact-success-title">{t('contact.success')}</h3>
+                                    <p className="contact-success-desc">{t('contact.successDesc')}</p>
+                                    <button className="contact-btn-outline" onClick={() => setSent(false)}>
+                                        {t('contact.sendAnother')}
                                     </button>
-                                </form>
-                            </div>
-                        )}
+                                </div>
+                            ) : (
+                                <div className="contact-form-card">
+                                    <form onSubmit={handleSubmit(onSubmit)} className="contact-form">
+                                        <div className="contact-form-row">
+                                            <div className="contact-form-group">
+                                                <label className="contact-form-label">{t('contact.name')}</label>
+                                                <input
+                                                    className="contact-input"
+                                                    placeholder={t('contact.namePlaceholder')}
+                                                    {...register('name')}
+                                                />
+                                                {errors.name?.message && <span className="contact-form-error">{errors.name.message}</span>}
+                                            </div>
+                                            <div className="contact-form-group">
+                                                <label className="contact-form-label">{t('contact.email')}</label>
+                                                <input
+                                                    type="email"
+                                                    className="contact-input"
+                                                    placeholder={t('contact.emailPlaceholder')}
+                                                    {...register('email')}
+                                                />
+                                                {errors.email?.message && <span className="contact-form-error">{errors.email.message}</span>}
+                                            </div>
+                                        </div>
+
+                                        <div className="contact-form-group">
+                                            <label className="contact-form-label">{t('contact.subject')}</label>
+                                            <input
+                                                className="contact-input"
+                                                placeholder={t('contact.subjectPlaceholder')}
+                                                {...register('subject')}
+                                            />
+                                            {errors.subject?.message && <span className="contact-form-error">{errors.subject.message}</span>}
+                                        </div>
+
+                                        <div className="contact-form-group">
+                                            <label className="contact-form-label">{t('contact.message')}</label>
+                                            <textarea
+                                                className="contact-input contact-textarea"
+                                                placeholder={t('contact.messagePlaceholder')}
+                                                {...register('message')}
+                                            />
+                                            {errors.message?.message && <span className="contact-form-error">{errors.message.message}</span>}
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="contact-submit-btn"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div className="contact-spinner"></div>
+                                                    {t('contact.sending')}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Send className="w-5 h-5" />
+                                                    {t('contact.sendMessage')}
+                                                </>
+                                            )}
+                                        </button>
+                                    </form>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <section className="contact-support-section">
+                <div className="contact-support-inner">
+                    <div className="contact-support-grid">
+                        {supportCards.map((card) => (
+                            <div key={card.title} className={`contact-support-card contact-support-card--${card.color}`}>
+                                <div className={`contact-support-icon contact-support-icon--${card.color}`}>
+                                    <card.icon className="w-6 h-6" />
+                                </div>
+                                <h3 className="contact-support-title">{card.title}</h3>
+                                <p className="contact-support-desc">{card.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="contact-faq-bar">
+                        <span className="contact-faq-text">{t('contact.faqQuestion')}</span>
+                        <Link to="/faq" className="contact-faq-link">
+                            {t('contact.faqLink')}
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            <section className="contact-cta-section">
+                <div className="contact-cta-inner">
+                    <div className="contact-cta-card">
+                        <div className="contact-cta-bg-effects">
+                            <div className="contact-cta-glow-1"></div>
+                            <div className="contact-cta-glow-2"></div>
+                            <div className="contact-cta-grid-overlay"></div>
+                        </div>
+                        <div className="contact-cta-content">
+                            <h2 className="contact-cta-title">{t('contact.ctaTitle')}</h2>
+                            <p className="contact-cta-sub">{t('contact.ctaSub')}</p>
+                            <Link to="/submit">
+                                <button className="contact-cta-btn">
+                                    {t('contact.ctaBtn')}
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

@@ -1,76 +1,7 @@
 /* Trainee Specific CSS */
-.trainee-welcome-card {
-  position: relative;
-  overflow: hidden;
-  padding: var(--spacing-2xl);
-  background: var(--color-surface);
-  border: 1px solid var(--color-glass-border);
-  border-radius: var(--radius-2xl);
-  margin-bottom: var(--spacing-2xl);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 240px;
-}
 
-/* Base glowing subtle background */
-.trainee-welcome-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Dramatic glowing orb */
-.trainee-welcome-card::after {
-  content: '';
-  position: absolute;
-  top: -20%;
-  right: -5%;
-  width: 400px;
-  height: 400px;
-  background: var(--color-primary);
-  opacity: 0.25;
-  filter: blur(100px);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  animation: pulseGlow 8s ease-in-out infinite alternate;
-}
-
-@keyframes pulseGlow {
-  0% { transform: scale(1) translate(0, 0); opacity: 0.2; }
-  100% { transform: scale(1.1) translate(-20px, 20px); opacity: 0.35; }
-}
-
-.welcome-content-wrapper {
-  position: relative;
-  z-index: 2;
-  max-width: 600px;
-}
-
-.welcome-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
-  letter-spacing: -0.03em;
-  background: linear-gradient(to right, #ffffff, #a1a1aa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.welcome-subtitle {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
+/* The welcome card is now replaced by the global .page-banner component.
+   We keep trainee-specific action cards and form elements here. */
 
 /* Action Cards */
 .action-card {
@@ -147,6 +78,46 @@
   color: var(--color-text-secondary);
   line-height: 1.5;
   margin: 0;
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--spacing-lg);
+}
+
+.timeline-item {
+  display: flex;
+  gap: 16px;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border-light);
+  position: relative;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.timeline-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-surface-active);
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.timeline-icon.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary-glow);
+}
+
+.timeline-content {
+  flex: 1;
 }
 
 /* Submission Form specific */
@@ -232,4 +203,478 @@
 .file-size {
   font-size: 0.75rem;
   color: var(--color-text-tertiary);
+}
+
+/* Responsive grid helpers used in trainee dashboard */
+.grid-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (min-width: 640px) {
+  .grid-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .grid-cards { grid-template-columns: repeat(3, 1fr); }
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (min-width: 768px) {
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* OFPPT registration form */
+.ofppt-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.ofppt-page-heading h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+}
+
+.ofppt-page-heading p {
+  margin: 0;
+  color: var(--color-text-tertiary);
+}
+
+.ofppt-page-heading .ofppt-eyebrow {
+  margin-bottom: 8px;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.ofppt-progress {
+  margin-bottom: var(--spacing-xl);
+  padding: 14px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.ofppt-progress-copy {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ofppt-progress-copy strong {
+  color: var(--color-primary);
+}
+
+.ofppt-progress-track {
+  height: 5px;
+  overflow: hidden;
+  background: var(--color-bg-base);
+  border-radius: 999px;
+}
+
+.ofppt-progress-track span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.ofppt-sections-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-xl);
+}
+
+.ofppt-section-card {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.ofppt-section-header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  background: var(--color-surface-hover);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ofppt-section-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: var(--color-primary);
+  background: var(--color-primary-dim);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+}
+
+.ofppt-section-title span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--color-text-tertiary);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.ofppt-section-title h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.ofppt-section-badge {
+  padding: 5px 8px;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ofppt-section-badge.is-required {
+  color: var(--color-primary);
+  background: var(--color-primary-dim);
+  border-color: var(--color-primary-border);
+}
+
+.ofppt-section-body {
+  padding: 22px 20px 24px;
+}
+
+.ofppt-fields-grid,
+.ofppt-conditional {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.ofppt-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ofppt-conditional {
+  padding: 18px;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-left: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+.ofppt-radio-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ofppt-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.ofppt-radio:hover,
+.ofppt-radio.is-selected {
+  color: var(--color-text-primary);
+  background: var(--color-primary-dim);
+  border-color: var(--color-primary-border);
+}
+
+.ofppt-radio input {
+  accent-color: var(--color-primary);
+}
+
+.ofppt-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.ofppt-form-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (min-width: 720px) {
+  .ofppt-fields-grid,
+  .ofppt-conditional {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ofppt-full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1180px) {
+  .ofppt-sections-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .ofppt-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ofppt-section-header {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .ofppt-section-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .ofppt-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .ofppt-form-actions .btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* Submit public page polish */
+.submit-public-page {
+  width: min(980px, calc(100% - 32px));
+  max-width: 980px;
+  padding: 104px 0 56px;
+}
+
+.submit-public-page .ofppt-page-heading {
+  align-items: flex-start;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.submit-public-page .ofppt-page-heading .ofppt-eyebrow,
+.submit-public-page .ofppt-section-title span {
+  letter-spacing: 0;
+}
+
+.submit-public-page .page-title {
+  max-width: 760px;
+  margin-bottom: 6px;
+  font-size: 1.75rem;
+  line-height: 1.14;
+}
+
+.submit-public-page .page-subtitle {
+  max-width: 680px;
+  margin-top: 6px;
+  color: var(--color-text-secondary);
+}
+
+.submit-public-page .ofppt-sections-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.submit-public-page .card {
+  padding: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.submit-public-page .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 13px 16px;
+  background: var(--color-surface-hover);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.submit-public-page .card-title {
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.submit-public-page .card > :not(.card-header) {
+  padding: 16px;
+}
+
+.submit-public-page .ofppt-progress-card {
+  margin-bottom: 16px;
+}
+
+.submit-public-page .ofppt-progress-card > :not(.card-header) {
+  padding: 15px 16px;
+}
+
+.submit-public-page .ofppt-section-badge {
+  flex-shrink: 0;
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  letter-spacing: 0;
+}
+
+.submit-public-page .form-group {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.submit-public-page .form-label {
+  margin-bottom: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.submit-public-page .form-control {
+  min-height: 40px;
+  border-radius: 4px;
+}
+
+.submit-public-page textarea.form-control {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.submit-public-page .grid-2 {
+  gap: 14px 16px;
+}
+
+.submit-public-page .grid-2 + .form-group,
+.submit-public-page .ofppt-radio-grid + .form-error,
+.submit-public-page .form-group + .form-group,
+.submit-public-page .ofppt-section-error {
+  margin-top: 14px;
+}
+
+.submit-public-page .ofppt-radio-grid {
+  gap: 7px 10px;
+}
+
+.submit-public-page .ofppt-radio,
+.submit-public-page .ofppt-switch {
+  min-height: 34px;
+  padding: 7px 10px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.submit-public-page .ofppt-radio:hover,
+.submit-public-page .ofppt-radio.is-selected,
+.submit-public-page .ofppt-switch:hover,
+.submit-public-page .ofppt-switch:has(input:checked) {
+  color: var(--color-text-primary);
+  background: var(--color-primary-dim);
+  border-color: var(--color-primary-border);
+}
+
+.submit-public-page .ofppt-radio input,
+.submit-public-page .ofppt-switch input {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--color-primary);
+}
+
+.ofppt-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.submit-public-page .ofppt-form-actions {
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.submit-public-page.is-confirmation {
+  max-width: 760px;
+}
+
+.submit-public-page.is-confirmation .detail-item {
+  padding: 18px;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+@media (max-width: 640px) {
+  .submit-public-page {
+    width: min(100% - 24px, 980px);
+    padding-top: 92px;
+  }
+
+  .submit-public-page .ofppt-page-heading {
+    flex-direction: column;
+  }
+
+  .submit-public-page .card-header,
+  .submit-public-page .card > :not(.card-header) {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .submit-public-page .card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .submit-public-page .ofppt-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .submit-public-page .ofppt-form-actions .btn {
+    justify-content: center;
+    width: 100%;
+  }
 }

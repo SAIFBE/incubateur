@@ -1,226 +1,187 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, Wifi, Filter, X } from 'lucide-react';
+import { ArrowRight, Calendar, GraduationCap, Rocket, Search, Trophy, Users, Wallet } from 'lucide-react';
 import { useDataStore } from '../contexts/DataStoreContext';
-import Card from '../components/ui/Card';
-import Badge from '../components/ui/Badge';
-import SearchBar from '../components/ui/SearchBar';
-import Select from '../components/ui/Select';
-import Button from '../components/ui/Button';
-import { CardSkeleton } from '../components/ui/Skeleton';
-import Breadcrumbs from '../components/ui/Breadcrumbs';
+import './Opportunities.css';
+
+const categoryMeta = {
+  funding: { tone: 'orange', icon: Wallet },
+  training: { tone: 'green', icon: GraduationCap },
+  mentoring: { tone: 'cyan', icon: Users },
+  competition: { tone: 'orange', icon: Trophy },
+  networking: { tone: 'green', icon: Users },
+  program: { tone: 'cyan', icon: Rocket },
+};
+
+const getLocalized = (item, field, lang) => {
+  const value = item?.[field];
+  if (typeof value === 'string') return value;
+  return value?.[lang] || value?.fr || value?.en || '';
+};
+
+const normalizeOpportunity = (opp, lang, t) => {
+  const category = opp.category || opp.type || 'program';
+  return {
+    ...opp,
+    id: String(opp.id),
+    title: getLocalized(opp, 'title_i18n', lang) || opp.title || t('opportunities.untitled'),
+    description: getLocalized(opp, 'summary_i18n', lang) || opp.description || t('opportunities.descriptionMissing'),
+    category,
+    status: opp.status || 'open',
+    deadline: opp.deadline,
+    image: opp.image || (Array.isArray(opp.images) ? opp.images[0] : null),
+    images: Array.isArray(opp.images) ? opp.images : [],
+  };
+};
 
 export default function Opportunities() {
-    const { t, i18n } = useTranslation();
-    const lang = i18n.language;
-    const { opportunities } = useDataStore();
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [category, setCategory] = useState('');
-    const [status, setStatus] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr';
+  const locale = lang === 'en' ? 'en-US' : 'fr-FR';
+  const { opportunities, loading } = useDataStore();
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [search, setSearch] = useState('');
 
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 600);
-        return () => clearTimeout(timer);
-    }, []);
+  const categoryLabel = (category) => t(`opportunities.categories.${category}`, { defaultValue: category });
+  const statusLabel = (status) => t(`opportunities.${status}`, { defaultValue: status });
 
-    const filtered = opportunities.filter(opp => {
-        const title = (opp.title_i18n[lang] || opp.title_i18n.fr).toLowerCase();
-        const summary = (opp.summary_i18n[lang] || opp.summary_i18n.fr).toLowerCase();
-        const matchSearch = !search || title.includes(search.toLowerCase()) || summary.includes(search.toLowerCase());
-        const matchCategory = !category || opp.category === category;
-        const matchStatus = !status || opp.status === status;
-        return matchSearch && matchCategory && matchStatus;
-    });
+  const formatDeadline = (deadline) => {
+    if (!deadline) return t('opportunities.dateNotProvided');
+    const parsed = new Date(deadline);
+    return Number.isNaN(parsed.getTime())
+      ? deadline
+      : parsed.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
-    const categoryOptions = [
-        { value: 'funding', label: t('opportunities.categories.funding') },
-        { value: 'training', label: t('opportunities.categories.training') },
-        { value: 'mentoring', label: t('opportunities.categories.mentoring') },
-        { value: 'competition', label: t('opportunities.categories.competition') },
-        { value: 'networking', label: t('opportunities.categories.networking') },
-    ];
+  const normalized = useMemo(
+    () => opportunities.map((opp) => normalizeOpportunity(opp, lang, t)),
+    [opportunities, lang, t]
+  );
 
-    const statusOptions = [
-        { value: 'open', label: t('opportunities.open') },
-        { value: 'closed', label: t('opportunities.closed') },
-    ];
+  const filtered = useMemo(() => normalized.filter((opp) => {
+    const categoryMatch = activeCategory === 'all' || opp.category === activeCategory;
+    const text = `${opp.title} ${opp.description} ${opp.category}`.toLowerCase();
+    const searchMatch = !search || text.includes(search.toLowerCase());
+    return categoryMatch && searchMatch;
+  }), [normalized, activeCategory, search]);
 
-    const hasFilters = search || category || status;
+  const featured = filtered[0] || normalized[0] || null;
+  const visibleCards = featured
+    ? filtered.filter((item) => item.id !== featured.id).slice(0, 6)
+    : [];
+  const categories = ['all', ...new Set(normalized.map((item) => item.category).filter(Boolean))];
 
-    const resetFilters = () => {
-        setSearch('');
-        setCategory('');
-        setStatus('');
-    };
-
-    return (
-        <div className="fade-in pb-20">
-            <div className="bg-gradient-primary text-white py-20 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-dots opacity-30"></div>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">{t('opportunities.title')}</h1>
-                    <p className="text-surface-400 text-lg max-w-2xl mx-auto">{t('opportunities.subtitle')}</p>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <Breadcrumbs items={[
-                    { label: t('nav.home'), href: '/' },
-                    { label: t('nav.opportunities') },
-                ]} />
-
-                {/* Filters */}
-                <div className="mb-12">
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-6 card-modern">
-                        <SearchBar
-                            value={search}
-                            onChange={setSearch}
-                            placeholder={t('opportunities.search')}
-                            className="flex-1 w-full sm:w-auto"
-                        />
-                        <button
-                            className="modern-btn sm:hidden flex items-center justify-center gap-2 w-full"
-                            onClick={() => setShowFilters(!showFilters)}
-                        >
-                            <Filter className="w-5 h-5" />
-                            {t('common.filter')}
-                        </button>
-                        <div className="hidden sm:flex gap-4">
-                            <Select
-                                options={categoryOptions}
-                                placeholder={t('opportunities.allCategories')}
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-52"
-                            />
-                            <Select
-                                options={statusOptions}
-                                placeholder={t('opportunities.allStatuses')}
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                className="w-44"
-                            />
-                            {hasFilters && (
-                                <button className="modern-btn flex items-center justify-center gap-2" onClick={resetFilters}>
-                                    <X className="w-4 h-4" />
-                                    {t('common.reset')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Mobile filters */}
-                    {showFilters && (
-                        <div className="sm:hidden mt-4 p-6 card-modern space-y-4">
-                            <Select
-                                options={categoryOptions}
-                                placeholder={t('opportunities.allCategories')}
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                label={t('opportunities.filterCategory')}
-                            />
-                            <Select
-                                options={statusOptions}
-                                placeholder={t('opportunities.allStatuses')}
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                label={t('opportunities.filterStatus')}
-                            />
-                            {hasFilters && (
-                                <button className="modern-btn modern-btn-primary w-full flex items-center justify-center gap-2" onClick={resetFilters}>
-                                    <X className="w-4 h-4" />
-                                    {t('common.reset')}
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Results */}
-                {loading ? (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                             <div key={i} className="card-modern p-8 animate-pulse">
-                                 <div className="flex gap-2 mb-6">
-                                     <div className="h-6 w-20 bg-surface-700 rounded-md"></div>
-                                     <div className="h-6 w-24 bg-surface-700 rounded-md"></div>
-                                 </div>
-                                 <div className="h-6 bg-surface-700 rounded-md mb-4 w-3/4"></div>
-                                 <div className="h-4 bg-surface-800 rounded-md mb-2 w-full"></div>
-                                 <div className="h-4 bg-surface-800 rounded-md mb-6 w-5/6"></div>
-                                 <div className="flex gap-2 mb-6">
-                                     <div className="h-5 w-16 bg-surface-800 rounded-md"></div>
-                                     <div className="h-5 w-16 bg-surface-800 rounded-md"></div>
-                                 </div>
-                                 <div className="pt-4 border-t border-white/5">
-                                     <div className="h-4 bg-surface-800 rounded-md w-1/2"></div>
-                                 </div>
-                             </div>
-                        ))}
-                    </div>
-                ) : filtered.length > 0 ? (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filtered.map(opp => {
-                            const isDeadlineSoon = new Date(opp.deadline) - new Date() < 7 * 24 * 60 * 60 * 1000 && opp.status === 'open';
-                            return (
-                                <Link key={opp.id} to={`/opportunities/${opp.id}`} className="block group">
-                                    <div className="card-modern h-full flex flex-col p-8 group-hover:border-highlight/50 transition-colors duration-300 relative overflow-hidden">
-                                        
-                                        <div className="flex items-center gap-3 mb-6 flex-wrap relative z-10">
-                                            <Badge status={opp.status}>
-                                                {t(`opportunities.${opp.status}`)}
-                                            </Badge>
-                                            <Badge color="purple" className="bg-primary-500/20 text-primary-300 border border-primary-500/30">
-                                                {t(`opportunities.categories.${opp.category}`)}
-                                            </Badge>
-                                            {isDeadlineSoon && (
-                                                <Badge color="yellow" className="bg-warning-500/20 text-warning-400 border border-warning-500/30">
-                                                    {t('opportunities.deadlineSoon')}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-highlight transition-colors relative z-10">
-                                            {opp.title_i18n[lang] || opp.title_i18n.fr}
-                                        </h3>
-                                        <p className="text-surface-400 text-sm mb-6 line-clamp-3 flex-grow leading-relaxed relative z-10">
-                                            {opp.summary_i18n[lang] || opp.summary_i18n.fr}
-                                        </p>
-                                        <div className="flex flex-wrap gap-2 mb-6 relative z-10">
-                                            {opp.tags.map(tag => (
-                                                <span key={tag} className="text-xs font-medium px-2.5 py-1 rounded-md bg-surface-800 text-surface-300 border border-white/5">#{tag}</span>
-                                            ))}
-                                        </div>
-                                        <div className="pt-4 border-t border-white/5 text-sm font-medium text-surface-400 flex items-center justify-between relative z-10">
-                                            <span className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center border border-white/5">
-                                                    <Calendar className="h-4 w-4 text-primary-400" />
-                                                </div>
-                                                {t('opportunities.deadline')}: {new Date(opp.deadline).toLocaleDateString(lang)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="card-modern text-center py-20 flex flex-col items-center justify-center border border-dashed border-white/10 bg-transparent">
-                        <div className="w-20 h-20 rounded-2xl bg-surface-800 flex items-center justify-center mb-6">
-                            <Filter className="h-10 w-10 text-surface-500 relative z-10" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-3">{t('opportunities.noResults')}</h3>
-                        <p className="text-surface-400 text-lg mb-8 max-w-md mx-auto">{t('opportunities.noResultsDesc')}</p>
-                        {hasFilters && (
-                            <button className="modern-btn" onClick={resetFilters}>
-                                {t('common.reset')}
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
+  return (
+    <main className="opp-landing">
+      <section className="opp-hero">
+        <h1>{t('opportunities.heroTitleLine1')}<br />{t('opportunities.heroTitleLine2Prefix')} <span>{t('opportunities.heroTitleHighlight')}</span></h1>
+        <p>{t('opportunities.heroSubtitleLanding')}</p>
+        <div className="opp-hero-actions">
+          <a href="#opportunity-cards" className="primary">{t('opportunities.explore')}</a>
+          <Link to="/submit" className="secondary">{t('opportunities.submitMyIdea')}</Link>
         </div>
-    );
+      </section>
+
+      {loading ? (
+        <section className="opp-feature-card opp-feature-card-empty">
+          <div className="opp-loading-panel">{t('opportunities.loading')}</div>
+        </section>
+      ) : featured ? (
+        <section className="opp-feature-card">
+          <div className={`opp-feature-visual ${featured.image ? 'has-image' : ''}`} aria-hidden="true">
+            {featured.image ? <img src={featured.image} alt="" /> : <div className="brain-core" />}
+          </div>
+          <div className="opp-feature-copy">
+            <div className="feature-meta">
+              <span>{categoryLabel(featured.category)}</span>
+              <small><Calendar size={13} /> {formatDeadline(featured.deadline)}</small>
+            </div>
+            <h2>{featured.title}</h2>
+            <p>{featured.description}</p>
+            <Link to={`/opportunities/${featured.id}`}>{t('opportunities.viewOpportunity')} <ArrowRight size={16} /></Link>
+          </div>
+        </section>
+      ) : (
+        <section className="opp-feature-card opp-feature-card-empty">
+          <div className="opp-empty-state">
+            <Rocket size={42} />
+            <h2>{t('opportunities.emptyTitle')}</h2>
+            {t('opportunities.emptyDesc') && <p>{t('opportunities.emptyDesc')}</p>}
+            <Link to="/contact">{t('opportunities.contactUs')}</Link>
+          </div>
+        </section>
+      )}
+
+      <section className="opp-list-toolbar">
+        <div className="opp-pills" aria-label={t('opportunities.categoryFilterAria')}>
+          {categories.map((item) => (
+            <button key={item} type="button" className={activeCategory === item ? 'active' : ''} onClick={() => setActiveCategory(item)}>
+              {item === 'all' ? t('opportunities.all') : categoryLabel(item)}
+            </button>
+          ))}
+        </div>
+        <label className="opp-inline-search">
+          <Search size={16} />
+          <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('opportunities.search')} />
+        </label>
+      </section>
+
+      <section id="opportunity-cards" className="opp-card-row">
+        {loading ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="opp-show-card loading" />) : visibleCards.map((opp, index) => {
+          const meta = categoryMeta[opp.category] || categoryMeta.program;
+          const Icon = meta.icon;
+          return (
+            <article key={opp.id} className="opp-show-card">
+              <div className={`show-visual visual-${(index % 3) + 1} ${opp.image ? 'has-image' : ''}`}>
+                {opp.image ? <img src={opp.image} alt="" /> : <Icon size={30} />}
+                <span>{statusLabel(opp.status)}</span>
+              </div>
+              <div className="show-body">
+                <small className={meta.tone}>{categoryLabel(opp.category)}</small>
+                <h2>{opp.title}</h2>
+                <p>{opp.description}</p>
+                <Link to={`/opportunities/${opp.id}`}>{t('opportunities.learnMore')} <ArrowRight size={15} /></Link>
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      {!loading && featured && visibleCards.length === 0 && (
+        <section className="opp-inline-empty">
+          <p>{t('opportunities.singlePublished')}</p>
+        </section>
+      )}
+
+      {!loading && normalized.length > 0 && (
+        <section className="opp-category-section">
+          <h2>{t('opportunities.browseByCategory')}</h2>
+          <div className="opp-category-grid">
+            {categories.filter((item) => item !== 'all').map((category) => {
+              const meta = categoryMeta[category] || categoryMeta.program;
+              const Icon = meta.icon;
+              const count = normalized.filter((item) => item.category === category).length;
+              return (
+                <article key={category}>
+                  <span><Icon size={22} /></span>
+                  <strong>{categoryLabel(category)}</strong>
+                  <small>{t('opportunities.countLabel', { count })}</small>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <section className="opp-cta">
+        <h2>{t('opportunities.readyTitle')}</h2>
+        <p>{t('opportunities.readyText')}</p>
+        <div>
+          <Link to="/submit" className="primary">{t('opportunities.submitMyIdea')}</Link>
+          <Link to="/contact" className="secondary">{t('opportunities.contactUs')}</Link>
+        </div>
+      </section>
+    </main>
+  );
 }

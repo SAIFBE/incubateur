@@ -1,170 +1,170 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDataStore } from '../../contexts/DataStoreContext';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import Input from '../../components/ui/Input';
 import Textarea from '../../components/ui/Textarea';
 import Card, { CardBody } from '../../components/ui/Card';
+import { useToast } from '../../components/ui/Toast';
+import AdminImagePicker from '../../components/ui/AdminImagePicker';
+
+const apiError = (error, fallback) => (
+  Object.values(error.response?.data?.errors ?? {}).flat()[0]
+  || error.response?.data?.message
+  || fallback
+);
+
+const imageItemsFromUrls = (urls = []) => urls.filter(Boolean).map((url, index) => ({
+  id: 'existing-' + index + '-' + url,
+  url,
+  name: 'Photo ' + (index + 1),
+  isExisting: true,
+}));
+
+const filesFromItems = (items) => items.filter((item) => item.file).map((item) => item.file);
+
+const initialForm = {
+  title: '',
+  description: '',
+  date: '',
+  category: '',
+  location: '',
+  impactSummary: '',
+  is_published: true,
+  images: [],
+};
 
 const AdminHighlightFormPage = () => {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
-  const { pastEvents, addPastEvent, updatePastEvent } = useDataStore();
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    location: '',
-    impactSummary: '',
-    image: ''
-  });
-
+  const { currentUser } = useAuth();
+  const isReadOnlyAdmin = Boolean(currentUser?.isReadOnlyAdmin);
+  const { showToast } = useToast();
+  const [formData, setFormData] = useState(initialForm);
+  const [galleryTouched, setGalleryTouched] = useState(false);
+  const [loading, setLoading] = useState(isEditing);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   useEffect(() => {
-    if (isEditing) {
-      const evt = pastEvents.find(e => e.id == id);
-      if (evt) {
+    if (isReadOnlyAdmin) {
+      navigate('/dashboard/admin/highlights', { replace: true });
+    }
+  }, [isReadOnlyAdmin, navigate]);
+
+  // Compte consultation redirige avant tout chargement de formulaire.
+  useEffect(() => {
+    if (!isEditing) return;
+
+    api.get('/admin/impact-moments/' + id)
+      .then((response) => {
+        const moment = response.data.data;
         setFormData({
-          title: evt.title_i18n?.fr || evt.title || '',
-          description: evt.description_i18n?.fr || evt.description || '',
-          date: evt.date || '',
-          location: evt.location_i18n?.fr || evt.location || '',
-          impactSummary: evt.impactSummary || '',
-          image: evt.images && evt.images.length > 0 ? evt.images[0] : ''
+          title: moment.title || '',
+          description: moment.description || '',
+          date: moment.date || '',
+          category: moment.category || '',
+          location: moment.location || '',
+          impactSummary: moment.impactSummary || '',
+          is_published: moment.is_published ?? true,
+          images: imageItemsFromUrls(moment.images?.length ? moment.images : moment.image ? [moment.image] : []),
         });
-      } else {
+        setGalleryTouched(false);
+      })
+      .catch((error) => {
+        showToast({ title: 'Erreur', message: apiError(error, 'Moment d’impact introuvable.'), type: 'error' });
         navigate('/dashboard/admin/highlights');
+      })
+      .finally(() => setLoading(false));
+  }, [id, isEditing, navigate, showToast]);
+
+  const handleChange = ({ target }) => {
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    setFormData((current) => ({ ...current, [target.name]: value }));
+  };
+
+  const handleImagesChange = (items) => {
+    setGalleryTouched(true);
+    setFormData((current) => ({ ...current, images: items }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+
+    const body = new FormData();
+    ['title', 'description', 'date', 'category', 'location', 'impactSummary'].forEach((field) => {
+      if (formData[field] !== '') body.append(field, formData[field]);
+    });
+    body.append('is_published', formData.is_published ? '1' : '0');
+    if (galleryTouched) body.append('clear_images', '1');
+    filesFromItems(formData.images).forEach((file) => body.append('images[]', file));
+
+    try {
+      if (isEditing) {
+        body.append('_method', 'PUT');
+        await api.post('/admin/impact-moments/' + id, body);
+      } else {
+        await api.post('/admin/impact-moments', body);
       }
-    }
-  }, [id, pastEvents, isEditing, navigate]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      showToast({ title: 'Succès', message: 'Le Moment d’impact a été ' + (isEditing ? 'modifié' : 'créé') + '.' });
+      navigate('/dashboard/admin/highlights');
+    } catch (error) {
+      const message = error.response?.status === 401
+        ? 'Votre session a expiré. Reconnectez-vous avant de publier.'
+        : apiError(error, 'Impossible d’enregistrer ce Moment d’impact.');
+      setFormError(message);
+      showToast({ title: 'Erreur', message, type: 'error' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Construct object compatible with existing Past Events structure
-    const evtObj = {
-      ...formData,
-      title_i18n: { fr: formData.title, ar: formData.title, en: formData.title },
-      description_i18n: { fr: formData.description, ar: formData.description, en: formData.description },
-      location_i18n: { fr: formData.location, ar: formData.location, en: formData.location },
-      images: formData.image ? [formData.image] : [],
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (isEditing) {
-      updatePastEvent({ ...evtObj, id: Number(id) || id }); // Handling possibility of id being numeric in old mock strings
-    } else {
-      evtObj.createdAt = new Date().toISOString();
-      addPastEvent(evtObj);
-    }
-    
-    navigate('/dashboard/admin/highlights');
-  };
+  if (loading) return <div className="p-8 text-center text-tertiary">Chargement...</div>;
 
   return (
-    <div className="pb-12 animate-fade-in max-w-4xl mx-auto">
-      <div className="mb-6 flex items-center gap-4">
-        <button onClick={() => navigate('/dashboard/admin/highlights')} className="p-2 bg-surface hover:bg-surface-hover rounded-full transition-colors border border-border">
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+    <div className="admin-form-page animate-fade-in">
+      <div className="admin-form-heading">
+        <button onClick={() => navigate('/dashboard/admin/highlights')} className="admin-back-button" aria-label="Retour">
+          <ArrowLeft size={18} />
         </button>
-        <h1 className="text-2xl font-bold">{isEditing ? 'Modifier le Moment d\'Impact' : 'Créer un Moment d\'Impact'}</h1>
+        <div>
+          <p>Moments d’impact</p>
+          <h1>{isEditing ? 'Modifier le Moment d’impact' : 'Créer un Moment d’impact'}</h1>
+        </div>
       </div>
 
-      <Card>
+      <Card className="admin-form-card">
         <CardBody className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            
+          <form onSubmit={handleSubmit} className="admin-form-grid">
+            {formError && <div className="form-error">{formError}</div>}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Nom de l'événement"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-              <Input
-                label="Date (ex: Mars 2026, Hier...)"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-              />
+              <Input label="Titre" name="title" value={formData.title} onChange={handleChange} required />
+              <Input label="Date ou période" name="date" value={formData.date} onChange={handleChange} />
+              <Input label="Catégorie" name="category" value={formData.category} onChange={handleChange} />
+              <Input label="Lieu" name="location" value={formData.location} onChange={handleChange} />
             </div>
 
-            <Input
-              label="Lieu"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              required
-            />
+            <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={5} required />
+            <Textarea label="Résumé de l’impact" name="impactSummary" value={formData.impactSummary} onChange={handleChange} rows={3} />
 
-            <Textarea
-              label="Description de l'événement"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
-              required
-            />
+            <label className="admin-toggle-row">
+              <input type="checkbox" name="is_published" checked={formData.is_published} onChange={handleChange} />
+              <span>Publier ce Moment d’impact</span>
+            </label>
 
-            <Textarea
-              label="Résumé de l'Impact (Chiffres clés, succès, etc.)"
-              name="impactSummary"
-              value={formData.impactSummary}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Ex: 5 startups créées, 100k MAD de fonds levés..."
-            />
+            <AdminImagePicker label="Photos du Moment d’impact" help="Ajoutez les photos fortes de ce moment. La première photo sera utilisée comme couverture." value={formData.images} onChange={handleImagesChange} />
 
-            <div className="border border-dashed border-primary-300 bg-primary-50 rounded-xl p-6 text-center">
-              <label className="block text-sm font-medium text-primary-800 mb-2">Photo de l'événement</label>
-              {formData.image && (
-                <div className="mb-4 relative w-full max-w-sm mx-auto h-48 rounded-lg overflow-hidden border border-surface-200">
-                  <img src={formData.image} alt="Aperçu" className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => setFormData(prev => ({...prev, image: ''}))} className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full text-sm text-surface-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-100 file:text-primary-700 hover:file:bg-primary-200"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-6 border-t border-border">
-              <button 
-                type="button" 
-                onClick={() => navigate('/dashboard/admin/highlights')}
-                className="px-6 py-2 bg-surface-200 hover:bg-surface-300 text-surface-800 rounded-lg font-medium transition-colors"
-              >
-                Annuler
-              </button>
-              <button 
-                type="submit" 
-                className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium shadow-sm transition-colors"
-              >
-                {isEditing ? 'Enregistrer les modifications' : 'Ajouter le Moment'}
+            <div className="admin-form-actions">
+              <button type="button" onClick={() => navigate('/dashboard/admin/highlights')} className="btn btn-secondary">Annuler</button>
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+                <Save size={16} />
+                {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             </div>
-            
           </form>
         </CardBody>
       </Card>

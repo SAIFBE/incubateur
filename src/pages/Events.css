@@ -1,0 +1,72 @@
+.events-page { min-height: 100vh; background: #06110c; color: #fff; padding-bottom: 82px; }
+.events-hero { padding: 140px 20px 74px; text-align: center; background: radial-gradient(circle at 50% 0%, rgba(88,255,194,.22), transparent 32%), radial-gradient(circle at 78% 35%, rgba(111,168,255,.12), transparent 28%), linear-gradient(180deg,#081a12,#06110c 88%); }
+.events-hero span { display: inline-flex; margin-bottom: 16px; border-radius: 999px; padding: 7px 13px; color: #58ffc2; background: rgba(88,255,194,.1); font-size: .72rem; font-weight: 950; letter-spacing: .08em; text-transform: uppercase; }
+.events-hero h1 { margin: 0; font-size: clamp(3rem,7vw,5.6rem); line-height: 1; letter-spacing: -0.06em; font-weight: 950; }
+.events-hero p { max-width: 660px; margin: 22px auto 0; color: #cddbd4; line-height: 1.7; }
+.events-featured, .events-toolbar, .events-grid, .events-calendar, .events-empty { width: min(1150px, calc(100% - 40px)); margin-left: auto; margin-right: auto; }
+.events-featured { margin-top: -24px; display: grid; grid-template-columns: .9fr 1.1fr; overflow: hidden; border-radius: 22px; background: #07120d; border: 1px solid rgba(255,255,255,.13); }
+.events-featured-visual { min-height: 340px; display: grid; place-items: center; color: #58ffc2; background: radial-gradient(circle, rgba(88,255,194,.22), transparent 28%), repeating-linear-gradient(90deg, rgba(88,255,194,.12) 0 1px, transparent 1px 34px), linear-gradient(135deg,#10231c,#06110c); }
+.events-featured-visual svg { width: 104px; height: 104px; filter: drop-shadow(0 0 22px currentColor); }
+.events-featured-copy { padding: 56px; display: flex; flex-direction: column; justify-content: center; }
+.events-featured-copy > span { width: fit-content; margin-bottom: 18px; border-radius: 999px; padding: 6px 12px; color: #58ffc2; background: rgba(88,255,194,.1); font-size: .7rem; font-weight: 950; text-transform: uppercase; }
+.events-featured-copy h2 { margin: 0; font-size: clamp(2rem,4vw,3.1rem); line-height: 1.05; letter-spacing: -0.05em; font-weight: 950; }
+.events-featured-copy p { margin: 20px 0 24px; color: #cddbd4; line-height: 1.65; }
+.events-featured-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+.events-featured-meta small { display: inline-flex; align-items: center; gap: 7px; color: #afc0b8; font-weight: 800; }
+.events-featured-copy a { width: fit-content; min-height: 46px; display: inline-flex; align-items: center; padding: 0 24px; border-radius: 8px; color: #062016; background: linear-gradient(135deg,#58f0c8,#6fa8ff); text-decoration: none; font-weight: 850; }
+.events-toolbar { margin-top: 54px; margin-bottom: 28px; display: flex; justify-content: space-between; gap: 18px; align-items: center; }
+.events-toolbar label { min-width: min(360px,100%); height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 999px; color: #b9c7c0; border: 1px solid rgba(255,255,255,.22); }
+.events-toolbar input { width: 100%; border: 0; outline: 0; color: #fff; background: transparent; }
+.events-toolbar div { display: flex; gap: 10px; padding: 6px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+.events-toolbar button { min-height: 38px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 0 14px; color: #d8e5df; background: transparent; font-weight: 850; cursor: pointer; }
+.events-toolbar button.active { color: #062016; background: #58ffc2; }
+.events-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 30px; }
+.event-card { min-height: 300px; display: flex; flex-direction: column; padding: 28px; border-radius: 14px; color: #fff; text-decoration: none; background: #07120d; border: 1px solid rgba(255,255,255,.13); transition: border-color .2s ease, transform .2s ease; }
+.event-card:hover { border-color: rgba(88,255,194,.42); transform: translateY(-3px); }
+.event-card.loading { background: linear-gradient(110deg,#07120d 8%,#102119 18%,#07120d 33%); background-size: 200% 100%; animation: eventsShimmer 1.25s linear infinite; }
+@keyframes eventsShimmer { to { background-position-x: -200%; } }
+.event-card-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+.event-card-top span, .event-card-top small { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 6px 10px; font-size: .72rem; font-weight: 950; }
+.event-card-top span { color: #58ffc2; background: rgba(88,255,194,.1); }
+.event-card-top small { color: #ffb673; background: rgba(255,182,115,.11); text-transform: uppercase; }
+.event-card h2 { margin: 0; font-size: 1.55rem; line-height: 1.12; letter-spacing: -0.04em; font-weight: 950; }
+.event-card p { margin: 16px 0 24px; color: #c7d7cf; line-height: 1.55; }
+.event-card-meta { margin-top: auto; display: grid; gap: 10px; color: #aebdb6; font-weight: 780; }
+.event-card-meta span { display: inline-flex; align-items: center; gap: 9px; }
+.events-empty { min-height: 300px; display: grid; place-items: center; align-content: center; gap: 12px; text-align: center; border-radius: 16px; background: #07120d; border: 1px dashed rgba(255,255,255,.18); color: #b9c7c0; }
+.events-empty h2 { margin: 0; color: #fff; }
+.events-empty p { margin: 0; }
+.events-calendar { overflow: hidden; border-radius: 18px; background: #07120d; border: 1px solid rgba(255,255,255,.13); }
+.events-calendar header { display: flex; align-items: center; justify-content: space-between; padding: 22px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.events-calendar header button { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.13); border-radius: 10px; color: #fff; background: rgba(255,255,255,.06); }
+.events-calendar h2 { margin: 0; font-size: 1.35rem; }
+.events-calendar h2 span { color: #58ffc2; }
+.calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7,1fr); }
+.calendar-weekdays span { padding: 15px; text-align: center; color: #9fb0a7; font-size: .78rem; font-weight: 900; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,.08); }
+.calendar-grid > div { min-height: 112px; padding: 10px; border-right: 1px solid rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.06); }
+.calendar-grid > div.muted { opacity: .35; background: rgba(255,255,255,.03); }
+.calendar-grid strong { display: block; margin-bottom: 8px; color: #fff; }
+.calendar-grid a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 6px; border-radius: 7px; padding: 6px 8px; color: #58ffc2; background: rgba(88,255,194,.1); text-decoration: none; font-size: .75rem; font-weight: 850; }
+@media (max-width: 900px) { .events-featured, .events-grid { grid-template-columns: 1fr 1fr; } .events-featured { grid-template-columns: 1fr; } .events-toolbar { align-items: stretch; flex-direction: column; } }
+@media (max-width: 620px) { .events-featured, .events-toolbar, .events-grid, .events-calendar, .events-empty { width: min(100% - 28px, 520px); } .events-grid { grid-template-columns: 1fr; } .events-featured-copy { padding: 32px 24px; } .calendar-grid > div { min-height: 86px; } }
+
+.events-featured-visual { position: relative; overflow: hidden; }
+.events-featured-visual.has-image { background: #07120d; }
+.events-featured-visual.has-image img,
+.event-card-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.events-featured-visual.has-image img { position: absolute; inset: 0; opacity: 0.9; }
+.event-card { overflow: hidden; padding: 0; }
+.event-card-image { height: 170px; overflow: hidden; background: #10231c; }
+.event-card-top,
+.event-card h2,
+.event-card p,
+.event-card-meta { margin-left: 28px; margin-right: 28px; }
+.event-card-top { margin-top: 28px; }
+.event-card-meta { margin-bottom: 28px; }
+.event-card:not(.has-media) { padding: 28px; }
+.event-card:not(.has-media) .event-card-top,
+.event-card:not(.has-media) h2,
+.event-card:not(.has-media) p,
+.event-card:not(.has-media) .event-card-meta { margin-left: 0; margin-right: 0; }
+.event-card:not(.has-media) .event-card-top { margin-top: 0; }
+.event-card:not(.has-media) .event-card-meta { margin-bottom: 0; }

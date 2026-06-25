@@ -7,7 +7,8 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const loginPath = location.pathname.includes('/dashboard/admin') ? '/zinebadmin' : '/login';
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   return children ? children : <Outlet />;

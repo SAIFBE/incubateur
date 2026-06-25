@@ -1,21 +1,25 @@
 import React from 'react';
 
-const Badge = ({ 
-  status, 
+const Badge = ({
+  status,
   children,
-  className = '' 
+  className = ''
 }) => {
-  // Translate common statuses for display
   const statusLabels = {
+    pending: 'En attente',
     draft: 'Brouillon',
     submitted: 'Soumis',
-    received: 'Reçu',
-    under_review: 'En cours d\'évaluation',
+    received: 'Recu',
+    under_review: 'En etude',
     requires_changes: 'Modifications requises',
-    revised: 'Révisé',
-    accepted: 'Accepté',
-    rejected: 'Rejeté',
-    archived: 'Archivé'
+    revised: 'Revise',
+    accepted: 'Accepte',
+    selected: 'Selectionne',
+    rejected: 'Refuse',
+    account_requested: 'Compte demande',
+    account_created: 'Compte cree',
+    approved: 'Approuve',
+    archived: 'Archive'
   };
 
   const label = children || statusLabels[status] || status;
