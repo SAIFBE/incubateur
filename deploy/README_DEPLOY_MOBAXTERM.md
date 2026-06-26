@@ -1,68 +1,58 @@
-# Déploiement Incubateur avec MobaXterm + Docker
+# Deploiement Incubateur avec MobaXterm + Docker Compose
 
-Cette architecture déploie l'application Laravel + React avec Docker Compose sur un serveur Linux.
+Cette documentation decrit le deploiement production de l'application Incubateur avec React/Vite, Laravel 12, Sanctum, MySQL, Nginx et Caddy.
 
-## Architecture finale sur le serveur
+## Structure serveur attendue
 
 ```txt
 /opt/incubateur
-├── backend                 # copie de C:\xampp\htdocs\incubateur-backend
-├── frontend                # copie de C:\Users\saif\Desktop\incubateur
-│   └── deploy              # ce dossier de déploiement
-└── backups
-    └── mysql
+|-- frontend
+|   `-- deploy
+|-- backend
+|-- backups
+|   `-- mysql
+`-- mysql
 ```
 
-Les conteneurs créés :
-
-```txt
-caddy          : entrée publique HTTP/HTTPS, ports 80 et 443
-frontend       : Nginx qui sert React et proxy /api + /storage
-backend-nginx  : Nginx Laravel interne
-backend        : PHP-FPM Laravel
-mysql          : base de données interne
-phpmyadmin     : optionnel, profil tools, exposé seulement sur 127.0.0.1:8081
-```
-
-## Préparation locale avant envoi
-
-Les fichiers déjà ajoutés :
-
-Frontend :
-
-```txt
-C:\Users\saif\Desktop\incubateur\Dockerfile.production
-C:\Users\saif\Desktop\incubateur\.dockerignore
-C:\Users\saif\Desktop\incubateur\deploy\...
-```
-
-Backend :
-
-```txt
-C:\xampp\htdocs\incubateur-backend\Dockerfile.production
-C:\xampp\htdocs\incubateur-backend\Dockerfile.nginx
-C:\xampp\htdocs\incubateur-backend\.dockerignore
-C:\xampp\htdocs\incubateur-backend\docker\...
-```
-
-## Envoi avec MobaXterm
-
-1. Ouvrir une session SSH vers le serveur.
-2. Créer le dossier :
+Le fichier Compose principal se trouve dans :
 
 ```bash
-sudo mkdir -p /opt/incubateur
+/opt/incubateur/frontend/deploy/docker-compose.yml
+```
+
+Depuis ce dossier, les contextes Docker sont :
+
+```txt
+frontend: ..
+backend: ../../backend
+```
+
+## Services Docker
+
+```txt
+caddy         : entree publique HTTP/HTTPS, ports 80 et 443
+frontend      : Nginx interne servant le build React et proxy /api + /storage
+backend-nginx : Nginx interne Laravel, sert public/ et storage public
+backend       : PHP-FPM Laravel
+mysql         : base MySQL interne, sans port public
+phpmyadmin    : optionnel, profil tools, 127.0.0.1:8081 uniquement
+```
+
+Seul Caddy publie les ports 80 et 443. MySQL, PHP-FPM, backend-nginx et frontend restent internes au reseau Docker.
+
+## Preparation serveur
+
+```bash
+sudo mkdir -p /opt/incubateur/backups/mysql /opt/incubateur/mysql
 sudo chown -R $USER:$USER /opt/incubateur
 ```
 
-3. Avec le panneau SFTP de MobaXterm, envoyer :
+Deposer ou cloner les deux projets :
 
-```txt
-C:\xampp\htdocs\incubateur-backend  -> /opt/incubateur/backend
-C:\Users\saif\Desktop\incubateur    -> /opt/incubateur/frontend
+```bash
+/opt/incubateur/frontend
+/opt/incubateur/backend
 ```
-
-Important : sur le serveur, le dossier doit s'appeler exactement `backend` et `frontend`.
 
 ## Installation Docker sur Ubuntu
 
@@ -73,19 +63,16 @@ sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker $USER
 ```
 
-Déconnecte-toi puis reconnecte-toi à SSH après `usermod`.
+Se deconnecter puis se reconnecter apres `usermod`.
 
-## Configuration production
+## Configuration initiale
 
 ```bash
 cd /opt/incubateur/frontend/deploy
@@ -93,69 +80,69 @@ cp .env.example .env
 cp env/backend.env.example env/backend.env
 ```
 
-Modifier les fichiers :
-
-```bash
-nano .env
-nano env/backend.env
-```
-
-Dans `.env` :
-
-```env
-APP_DOMAIN=ton-domaine.com
-VITE_API_URL=/api
-VITE_BASE_PATH=/
-```
-
-Si tu n'as pas encore de domaine et tu veux tester avec l'IP :
+Pour un test par IP sans HTTPS, modifier `.env` :
 
 ```env
 APP_DOMAIN=:80
 VITE_API_URL=/api
 VITE_BASE_PATH=/
+COMPOSE_PROJECT_NAME=incubateur
 ```
 
-Dans `env/backend.env`, remplacer :
+Pour un vrai domaine, modifier `.env` :
 
 ```env
-APP_URL=https://ton-domaine.com
-ASSET_URL=https://ton-domaine.com
-DB_PASSWORD=mot_de_passe_fort
-MYSQL_PASSWORD=mot_de_passe_fort
-MYSQL_ROOT_PASSWORD=mot_de_passe_root_fort
-SANCTUM_STATEFUL_DOMAINS=ton-domaine.com,www.ton-domaine.com
-SESSION_DOMAIN=.ton-domaine.com
-CORS_ALLOWED_ORIGINS=https://ton-domaine.com,https://www.ton-domaine.com
+APP_DOMAIN=example.com
+VITE_API_URL=/api
+VITE_BASE_PATH=/
+COMPOSE_PROJECT_NAME=incubateur
 ```
 
-Si tu testes par IP sans HTTPS :
+Modifier ensuite `env/backend.env`. Remplacer manuellement :
+
+```env
+APP_KEY=
+APP_URL=https://example.com
+ASSET_URL=https://example.com
+FRONTEND_URL=https://example.com
+DB_PASSWORD=CHANGE_ME_STRONG_PASSWORD
+MYSQL_PASSWORD=CHANGE_ME_STRONG_PASSWORD
+MYSQL_ROOT_PASSWORD=CHANGE_ME_ROOT_PASSWORD
+SANCTUM_STATEFUL_DOMAINS=example.com,www.example.com
+CORS_ALLOWED_ORIGINS=https://example.com,https://www.example.com
+MAIL_FROM_ADDRESS=noreply@example.com
+```
+
+Pour un test par IP sans HTTPS :
 
 ```env
 APP_URL=http://IP_DU_SERVEUR
 ASSET_URL=http://IP_DU_SERVEUR
-SESSION_DOMAIN=null
+FRONTEND_URL=http://IP_DU_SERVEUR
+SESSION_DOMAIN=
 SESSION_SECURE_COOKIE=false
 SANCTUM_STATEFUL_DOMAINS=IP_DU_SERVEUR
 CORS_ALLOWED_ORIGINS=http://IP_DU_SERVEUR
 ```
 
-## Générer APP_KEY
+Ne jamais commiter de vrais mots de passe, tokens ou APP_KEY.
 
-Après avoir remplacé les mots de passe, lance :
+## Generer APP_KEY
+
+Apres avoir remplace les mots de passe dans `env/backend.env` :
 
 ```bash
 docker compose --env-file .env build backend
-docker compose --env-file .env run --rm backend php artisan key:generate --show
+docker compose --env-file .env run --rm --no-deps backend php artisan key:generate --show
 ```
 
-Copie la valeur affichée dans `env/backend.env` :
+Copier la valeur affichee dans `env/backend.env` :
 
 ```env
-APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxx
+APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-## Premier déploiement
+## Premier deploiement
 
 ```bash
 cd /opt/incubateur/frontend/deploy
@@ -163,65 +150,87 @@ chmod +x scripts/*.sh
 ./scripts/first-deploy.sh
 ```
 
-L'application sera disponible sur :
+Le script verifie la configuration, construit les images, demarre MySQL, attend son etat healthy, execute les migrations, cree le lien storage, optimise Laravel, lance le seeder admin, puis demarre frontend et Caddy.
 
-```txt
-https://ton-domaine.com
-```
+## Mise a jour normale
 
-ou, en test IP :
-
-```txt
-http://IP_DU_SERVEUR
-```
-
-## Commandes utiles
-
-Voir les conteneurs :
+Frontend :
 
 ```bash
+cd /opt/incubateur/frontend
+git pull
+```
+
+Backend :
+
+```bash
+cd /opt/incubateur/backend
+git pull
+```
+
+Redeploiement :
+
+```bash
+cd /opt/incubateur/frontend/deploy
+docker compose --env-file .env config
+docker compose --env-file .env up -d --build
+docker compose exec backend php artisan migrate --force
+docker compose exec backend php artisan optimize:clear
+docker compose exec backend php artisan optimize
 docker compose ps
 ```
 
-Voir les logs :
+## Commandes de maintenance
+
+Demarrer :
 
 ```bash
-docker compose logs -f
+docker compose --env-file .env up -d
 ```
 
-Redémarrer :
-
-```bash
-docker compose restart
-```
-
-Reconstruire après modification du code :
+Reconstruire :
 
 ```bash
 docker compose --env-file .env up -d --build
 ```
 
-Lancer les migrations :
+Arreter sans supprimer :
 
 ```bash
-docker compose exec backend php artisan migrate --force
+docker compose stop
 ```
 
-Créer ou mettre à jour les comptes admin :
+Redemarrer :
 
 ```bash
-docker compose exec backend php artisan db:seed --class=AdminUserSeeder --force
+docker compose restart
+```
+
+Supprimer les conteneurs sans supprimer les volumes :
+
+```bash
+docker compose down
+```
+
+Attention production : ne jamais utiliser `docker compose down -v` sans sauvegarde verifiee. Cette commande peut supprimer les donnees persistantes MySQL et Laravel.
+
+## Logs utiles
+
+```bash
+docker compose logs -f
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f caddy
+docker compose logs -f mysql
 ```
 
 ## phpMyAdmin optionnel
-
-Démarrer phpMyAdmin :
 
 ```bash
 docker compose --profile tools up -d phpmyadmin
 ```
 
-Puis créer un tunnel SSH avec MobaXterm :
+phpMyAdmin ecoute seulement sur `127.0.0.1:8081`. Pour y acceder depuis ton PC, creer un tunnel SSH MobaXterm :
 
 ```txt
 Local port: 8081
@@ -229,7 +238,7 @@ Remote host: 127.0.0.1
 Remote port: 8081
 ```
 
-Ensuite ouvrir localement :
+Puis ouvrir :
 
 ```txt
 http://127.0.0.1:8081
@@ -242,18 +251,55 @@ cd /opt/incubateur/frontend/deploy
 ./scripts/backup-db.sh
 ```
 
-Restaurer une sauvegarde :
-
-```bash
-./scripts/restore-db.sh ../backups/mysql/nom_du_fichier.sql
-```
-
-## Ports à ouvrir sur le serveur
+Les sauvegardes sont creees dans :
 
 ```txt
-80/tcp
-443/tcp
-22/tcp pour SSH
+/opt/incubateur/backups/mysql
 ```
 
-Ne pas exposer MySQL publiquement.
+Le script conserve les 14 dernieres sauvegardes `.sql.gz`.
+
+## Restauration MySQL
+
+```bash
+cd /opt/incubateur/frontend/deploy
+./scripts/restore-db.sh ../../backups/mysql/nom_du_fichier.sql.gz
+```
+
+Le script demande de taper `RESTORE` avant de restaurer.
+
+## Validation avant production
+
+Frontend local :
+
+```bash
+npm run lint
+npm run build
+```
+
+Backend local :
+
+```bash
+php artisan test
+```
+
+Docker depuis `/opt/incubateur/frontend/deploy` :
+
+```bash
+docker compose --env-file .env config
+docker compose --env-file .env build
+```
+
+## Routes a verifier apres deploiement
+
+```txt
+/
+/login
+/opportunites
+/evenements
+/demande-compte/{token}
+/api/login
+/api/project-ideas
+/storage/...
+/up
+```

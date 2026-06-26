@@ -5,7 +5,8 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
-      - frontend
+      frontend:
+        condition: service_healthy
     environment:
       APP_DOMAIN: ${APP_DOMAIN:-:80}
     ports:
@@ -27,7 +28,14 @@ services:
         VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
     restart: unless-stopped
     depends_on:
-      - backend-nginx
+      backend-nginx:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - incubateur_net
 
@@ -56,6 +64,12 @@ services:
       - backend
     volumes:
       - laravel_storage:/var/www/html/storage:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/up >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - incubateur_net
 
@@ -68,18 +82,18 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
     networks:
       - incubateur_net
 
   phpmyadmin:
     image: phpmyadmin:5-apache
     restart: unless-stopped
-    profiles:
-      - tools
+    profiles: ["tools"]
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
