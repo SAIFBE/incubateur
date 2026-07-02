@@ -23,6 +23,10 @@ import AdminAccountRequestsPage from '../features/admin/AdminAccountRequestsPage
 import AdminAcceptedProjectsPage from '../features/admin/AdminAcceptedProjectsPage';
 import AdminAcceptedProjectDetailPage from '../features/admin/AdminAcceptedProjectDetailPage';
 import AdminStatisticsPage from '../features/admin/AdminStatisticsPage';
+import AdminContactMessagesPage from '../features/admin/AdminContactMessagesPage';
+import AdminStaffContactsPage from '../features/admin/AdminStaffContactsPage';
+import AdminStaffContactFormPage from '../features/admin/AdminStaffContactFormPage';
+import AdminEventStaffNotifyPage from '../features/admin/AdminEventStaffNotifyPage';
 
 // Admin CMS
 import AdminEventsPage from '../features/admin/AdminEventsPage';
@@ -87,6 +91,7 @@ const AppRouter = () => {
         <Route path="events" element={<AdminEventsPage />} />
         <Route path="events/new" element={<AdminEventFormPage />} />
         <Route path="events/:id/edit" element={<AdminEventFormPage />} />
+        <Route path="events/:id/notify-staff" element={<AdminEventStaffNotifyPage />} />
 
         <Route path="opportunities" element={<AdminOpportunitiesPage />} />
         <Route path="opportunities/new" element={<AdminOpportunityFormPage />} />
@@ -96,6 +101,10 @@ const AppRouter = () => {
         <Route path="highlights/new" element={<AdminHighlightFormPage />} />
         <Route path="highlights/:id/edit" element={<AdminHighlightFormPage />} />
 
+        <Route path="contact-messages" element={<AdminContactMessagesPage />} />
+        <Route path="staff-contacts" element={<AdminStaffContactsPage />} />
+        <Route path="staff-contacts/new" element={<AdminStaffContactFormPage />} />
+        <Route path="staff-contacts/:id/edit" element={<AdminStaffContactFormPage />} />
         <Route path="statistics" element={<AdminStatisticsPage />} />
       </Route>
 
@@ -106,5 +115,6 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
+
 
 

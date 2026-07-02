@@ -1898,3 +1898,145 @@
     justify-content: flex-start;
   }
 }
+
+.admin-checkbox-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+.admin-checkbox-line input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.admin-notify-page {
+  padding-bottom: 3rem;
+}
+
+.admin-notify-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.admin-notify-card {
+  overflow: hidden;
+}
+
+.admin-notify-title {
+  margin: 0.35rem 0 0.75rem;
+  color: var(--color-text-primary);
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  font-weight: 800;
+}
+
+.admin-notify-subtitle {
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.admin-notify-meta,
+.admin-notify-toolbar,
+.admin-staff-notify-row,
+.admin-staff-notify-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-notify-toolbar,
+.admin-staff-notify-row {
+  justify-content: space-between;
+}
+
+.admin-notify-meta {
+  color: var(--color-text-secondary);
+}
+
+.admin-whatsapp-message {
+  margin-top: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  line-height: 1.65;
+  font-family: inherit;
+}
+
+.admin-notify-modes {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem;
+  background: var(--color-surface-hover);
+}
+
+.admin-notify-modes button {
+  border: 0;
+  border-radius: 0.6rem;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-notify-modes button.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.admin-notify-group p,
+.admin-staff-notify-row span,
+.admin-staff-notify-row small,
+.admin-notify-history span {
+  color: var(--color-text-secondary);
+}
+
+.admin-staff-notify-list,
+.admin-notify-history {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-staff-notify-row,
+.admin-notify-history > div {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface-hover);
+}
+
+.admin-staff-notify-row > div:first-child,
+.admin-notify-history > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.admin-staff-notify-row strong,
+.admin-notify-history strong {
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 700px) {
+  .admin-notify-modes,
+  .admin-notify-modes button,
+  .admin-staff-notify-actions {
+    width: 100%;
+  }
+
+  .admin-staff-notify-actions .admin-inline-action {
+    justify-content: center;
+    flex: 1;
+  }
+}

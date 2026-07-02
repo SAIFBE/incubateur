@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDataStore } from '../../contexts/DataStoreContext';
 import Table from '../../components/ui/Table';
@@ -105,6 +105,12 @@ const AdminEventsPage = () => {
         </button>
         {!isReadOnlyAdmin && (
           <>
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/admin/events/${row.id}/notify-staff`); }}
+              className="admin-inline-action admin-inline-action--info"
+            >
+              Notifier
+            </button>
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/admin/events/${row.id}/edit`); }}
               className="admin-inline-action"
@@ -240,3 +246,4 @@ const AdminEventsPage = () => {
 };
 
 export default AdminEventsPage;
+

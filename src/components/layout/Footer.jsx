@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Phone } from "lucide-react";
 import BrandLogo from "../ui/BrandLogo";
 
 export default function Footer() {
@@ -53,6 +53,12 @@ export default function Footer() {
                                     <MapPin className="h-4 w-4 text-primary-400" />
                                 </div>
                                 <span className="text-surface-400 mt-1">{t("contact.info.address")}</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10">
+                                    <Phone className="h-4 w-4 text-primary-400" />
+                                </div>
+                                <a className="text-surface-400 mt-1 hover:text-white transition-colors" href={`tel:${t("contact.info.phone")}`}>{t("contact.info.phone")}</a>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10">

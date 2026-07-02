@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Clock, Send, CheckCircle, Handshake, Rocket, Monitor, ArrowRight } from 'lucide-react';
+import { MapPin, Clock, Phone, Send, CheckCircle, Handshake, Rocket, Monitor, ArrowRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,10 +26,14 @@ export default function Contact() {
     });
 
     const onSubmit = async (data) => {
-        await api.post('/contact', data);
-        addToast({ type: 'success', title: t('contact.success'), message: t('contact.successDesc') });
-        setSent(true);
-        reset();
+        try {
+            await api.post('/contact', data);
+            addToast({ type: 'success', title: t('contact.success'), message: t('contact.successDesc') });
+            setSent(true);
+            reset();
+        } catch (error) {
+            addToast({ type: 'error', title: 'Erreur', message: error.response?.data?.message || 'Impossible d envoyer votre message.' });
+        }
     };
 
     const supportCards = [
@@ -86,6 +90,16 @@ export default function Contact() {
                                     <div className="contact-detail-text">
                                         <span className="contact-detail-label">{t('contact.addressLabel')}</span>
                                         <span className="contact-detail-value">{t('contact.info.address')}</span>
+                                    </div>
+                                </div>
+
+                                <div className="contact-detail-item">
+                                    <div className="contact-detail-icon">
+                                        <Phone className="w-5 h-5" />
+                                    </div>
+                                    <div className="contact-detail-text">
+                                        <span className="contact-detail-label">{t('contact.phoneLabel')}</span>
+                                        <a className="contact-detail-value" href={`tel:${t('contact.info.phone')}`}>{t('contact.info.phone')}</a>
                                     </div>
                                 </div>
 

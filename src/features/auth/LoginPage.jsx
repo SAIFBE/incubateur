@@ -66,7 +66,7 @@ const LoginPage = ({ mode = 'trainee' }) => {
         setError(result.message || 'Identifiants incorrects');
       }
     } catch {
-      setError('Une erreur est survenue lors de la connexion. Veuillez rÃ©essayer.');
+      setError('Une erreur est survenue lors de la connexion. Veuillez reessayer.');
     } finally {
       setIsLoading(false);
     }
@@ -87,12 +87,12 @@ const LoginPage = ({ mode = 'trainee' }) => {
 
           <div className="auth-visual-content">
             <h1 className="auth-visual-title">
-              {isAdmin ? "Pilotez l'innovation de demain." : 'Transformez vos idÃ©es en startups.'}
+              {isAdmin ? "Pilotez l'innovation de demain." : 'Transformez vos idees en startups.'}
             </h1>
             <p className="auth-visual-desc">
               {isAdmin
-                ? 'AccÃ¨s rÃ©servÃ© Ã  lâ€™administration. Supervisez les soumissions, les comptes et le suivi des projets acceptÃ©s.'
-                : 'AccÃ©dez Ã  votre espace stagiaire pour suivre votre projet, vos avancements et vos Ã©changes avec lâ€™incubateur.'}
+                ? "Acces reserve a l'administration. Supervisez les soumissions, les comptes et le suivi des projets acceptes."
+                : "Accedez a votre espace stagiaire pour suivre votre projet, vos avancements et vos echanges avec l'incubateur."}
             </p>
           </div>
         </div>
@@ -124,7 +124,7 @@ const LoginPage = ({ mode = 'trainee' }) => {
 
             <div className="auth-form-body">
               <h2 className="auth-form-title">
-                {isAdmin ? 'AccÃ¨s Administrateur' : 'Bienvenue dans votre espace'}
+                {isAdmin ? 'Acces administrateur' : 'Bienvenue dans votre espace'}
               </h2>
               <p className="auth-form-subtitle">
                 {isAdmin ? 'Veuillez vous authentifier pour continuer.' : 'Connectez-vous avec votre Code CEF.'}
@@ -142,17 +142,21 @@ const LoginPage = ({ mode = 'trainee' }) => {
               <form onSubmit={handleSubmit}>
                 <div className="auth-input-group">
                   <label htmlFor="identifier" className="auth-label">
-                    {isAdmin ? 'Adresse Email Professionnelle' : 'Code CEF (Identifiant unique)'}
+                    {isAdmin ? 'Adresse email professionnelle' : 'Code CEF (identifiant unique)'}
                   </label>
                   <input
                     id="identifier"
                     type={isAdmin ? 'email' : 'text'}
                     className="auth-input"
-                    placeholder={isAdmin ? 'admin@cmc.com' : 'Ex: 20240001'}
+                    placeholder=""
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     disabled={isLoading}
+                    required
                     dir="ltr"
+                    inputMode={isAdmin ? 'email' : 'numeric'}
+                    autoCapitalize="none"
+                    spellCheck={false}
                     autoComplete={isAdmin ? 'email' : 'username'}
                   />
                 </div>
@@ -163,11 +167,14 @@ const LoginPage = ({ mode = 'trainee' }) => {
                     id="password"
                     type="password"
                     className="auth-input"
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder=""
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
+                    required
                     dir="ltr"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     autoComplete="current-password"
                   />
                 </div>

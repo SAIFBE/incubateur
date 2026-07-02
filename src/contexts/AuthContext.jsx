@@ -2,6 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
+const AUTH_USER_KEY = 'cmc_incubator_user';
+const AUTH_TOKEN_KEY = 'cmc_incubator_token';
+
+const clearStoredSession = () => {
+  sessionStorage.removeItem(AUTH_USER_KEY);
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+
+  // Clean old persistent sessions from previous versions.
+  localStorage.removeItem(AUTH_USER_KEY);
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+};
 
 const normalizeUserRole = (user) => {
   if (!user) return user;
@@ -19,15 +30,19 @@ const normalizeUserRole = (user) => {
 export const AuthProvider = ({ children }) => {
   const loadStoredSession = () => {
     try {
-      const stored = localStorage.getItem('cmc_incubator_user');
-      const token = localStorage.getItem('cmc_incubator_token');
+      const stored = sessionStorage.getItem(AUTH_USER_KEY);
+      const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
+
+      localStorage.removeItem(AUTH_USER_KEY);
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+
       if (stored && token) {
         return { user: normalizeUserRole(JSON.parse(stored)), token };
       }
-      localStorage.removeItem('cmc_incubator_user');
-      localStorage.removeItem('cmc_incubator_token');
+      clearStoredSession();
     } catch (e) {
-      console.error('Failed to parse user from local storage', e);
+      console.error('Failed to parse user from session storage', e);
+      clearStoredSession();
     }
     return { user: null, token: null };
   };
@@ -44,8 +59,7 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(normalizeUserRole(response.data.user));
       })
       .catch(() => {
-        localStorage.removeItem('cmc_incubator_user');
-        localStorage.removeItem('cmc_incubator_token');
+        clearStoredSession();
         setCurrentUser(null);
       })
       .finally(() => setLoading(false));
@@ -61,17 +75,15 @@ export const AuthProvider = ({ children }) => {
     if (loading) return;
 
     if (currentUser) {
-      localStorage.setItem('cmc_incubator_user', JSON.stringify(currentUser));
+      sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
     } else {
-      localStorage.removeItem('cmc_incubator_user');
-      localStorage.removeItem('cmc_incubator_token');
+      clearStoredSession();
     }
   }, [currentUser, loading]);
 
   const login = async (identifier, password) => {
     setLoading(true);
     try {
-      // Determine if it's admin (email) or stagiaire (cef)
       const isEmail = identifier.includes('@');
 
       const payload = isEmail
@@ -85,31 +97,29 @@ export const AuthProvider = ({ children }) => {
       if (token && user) {
         const normalizedUser = normalizeUserRole(user);
 
-        localStorage.setItem('cmc_incubator_token', token);
+        sessionStorage.setItem(AUTH_TOKEN_KEY, token);
         setCurrentUser(normalizedUser);
         setLoading(false);
         return { success: true, user: normalizedUser };
       }
 
       setLoading(false);
-      return { success: false, message: 'Format de rÃ©ponse invalide' };
+      return { success: false, message: 'Format de reponse invalide' };
     } catch (error) {
       setLoading(false);
-      const message = error.response?.data?.message || 'Identifiants incorrects ou erreur rÃ©seau';
+      const message = error.response?.data?.message || 'Identifiants incorrects ou erreur reseau';
       return { success: false, message };
     }
   };
 
   const logout = async () => {
     try {
-      // Optional: call backend logout to invalidate token
       await api.post('/logout');
     } catch (error) {
       console.error('Logout error', error);
     } finally {
       setCurrentUser(null);
-      localStorage.removeItem('cmc_incubator_user');
-      localStorage.removeItem('cmc_incubator_token');
+      clearStoredSession();
     }
   };
 
